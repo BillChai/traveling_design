@@ -1,78 +1,155 @@
 .appShell {
-  width: min(1480px, calc(100% - 32px));
+  width: min(1600px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 34px 0 28px;
+  padding: 34px 0 48px;
+}
+
+.hero {
+  padding: clamp(18px, 4vw, 48px) clamp(4px, 2vw, 24px);
+}
+
+.hero h1 {
+  max-width: 900px;
+  margin: 8px 0 12px;
+  font-family: Georgia, "Noto Serif TC", serif;
+  font-size: clamp(2.6rem, 7vw, 6.5rem);
+  line-height: 0.96;
+  letter-spacing: -0.06em;
+}
+
+.hero > p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.05rem;
 }
 
 .notice {
-  margin: 18px 0;
+  margin-bottom: 18px;
   padding: 12px 16px;
   border: 1px solid #d6a45d;
   border-radius: 12px;
   background: var(--warning-soft);
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
 }
 
-.inputPanel,
-.plannerSection {
-  margin-top: 28px;
-  padding: clamp(20px, 3vw, 36px);
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(340px, 0.72fr) minmax(0, 1.6fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.editorPanel,
+.plannerPanel,
+.outputs {
   border: 1px solid var(--line);
   border-radius: 22px;
-  background: rgb(255 253 248 / 86%);
+  background: rgb(255 253 248 / 90%);
   box-shadow: var(--shadow);
 }
 
-.sectionIntro {
-  max-width: 740px;
-  margin-bottom: 24px;
-}
-
-.sectionIntro h2 {
-  margin: 4px 0 8px;
-  font-size: clamp(1.55rem, 3vw, 2.4rem);
-  letter-spacing: -0.035em;
-}
-
-.sectionIntro p:last-child {
-  margin: 0;
-  color: var(--muted);
-}
-
-.inputGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
-}
-
-.inputGrid > form {
+.editorPanel {
+  position: sticky;
+  top: 16px;
   padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--paper);
+}
+
+.editorPanel > label {
+  margin-bottom: 10px;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.editorPanel textarea {
+  min-height: 570px;
+  padding: 16px;
+  border-color: #bdb7aa;
+  border-radius: 12px;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+.help {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.help code {
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: #f0ece2;
+}
+
+.plannerPanel {
+  min-width: 0;
+  padding: 18px;
+}
+
+.dragHint {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 0.84rem;
 }
 
 .board {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(320px, 1fr);
-  gap: 18px;
+  grid-auto-columns: minmax(285px, 1fr);
+  gap: 14px;
   overflow-x: auto;
-  padding: 4px 3px 18px;
+  padding: 2px 2px 14px;
   scroll-snap-type: x proximity;
 }
 
-.footer {
-  padding: 32px 8px 4px;
-  color: var(--muted);
-  text-align: center;
-  font-size: 0.9rem;
+.outputs {
+  margin-top: 22px;
+  padding: clamp(20px, 3vw, 34px);
 }
 
-@media (max-width: 760px) {
-  .appShell { width: min(100% - 20px, 720px); padding-top: 18px; }
-  .inputGrid { grid-template-columns: 1fr; }
+.outputs h2 {
+  margin: 6px 0 22px;
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
+}
+
+.outputGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.outputGrid article {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #f8f5ee;
+}
+
+.outputGrid h3 {
+  margin: 0 0 10px;
+}
+
+.outputGrid pre {
+  max-height: 350px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 1050px) {
+  .workspace { grid-template-columns: 1fr; }
+  .editorPanel { position: static; }
+  .editorPanel textarea { min-height: 360px; }
+  .outputGrid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 700px) {
+  .appShell { width: min(100% - 20px, 680px); padding-top: 12px; }
   .board { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: 1fr; overflow-x: visible; }
 }

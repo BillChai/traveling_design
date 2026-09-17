@@ -1,22 +1,23 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import {
   DndContext,
-  KeyboardSensor,
   PointerSensor,
   closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { DayColumn } from '../components/DayColumn'
-import { MarkdownImport } from '../components/MarkdownImport'
-import { PlaceForm } from '../components/PlaceForm'
-import { TripHeader } from '../components/TripHeader'
+import {
+  parseTripMarkdown,
+  serializeTripCsv,
+  serializeTripJson,
+  serializeTripMarkdown,
+} from '../domain/markdown'
 import { findScheduleWarnings } from '../domain/time'
-import type { NewPlaceInput, Placement } from '../domain/types'
+import type { ImportError, Placement } from '../domain/types'
 import { loadTrip, saveTrip, type LoadTripResult } from '../persistence/tripStorage'
-import { createPlaceBundle, tripReducer } from './tripReducer'
+import { tripReducer } from './tripReducer'
 import styles from './App.module.css'
 
 const sortedFor = (placements: Placement[], dayId: string | null) =>
@@ -26,10 +27,11 @@ export default function App() {
   const initialLoad = useRef<LoadTripResult | null>(null)
   if (!initialLoad.current) initialLoad.current = loadTrip(window.localStorage)
   const [trip, dispatch] = useReducer(tripReducer, initialLoad.current.trip)
+  const [markdown, setMarkdown] = useState(() => serializeTripMarkdown(initialLoad.current!.trip))
+  const [errors, setErrors] = useState<ImportError[]>([])
   const [notice, setNotice] = useState(initialLoad.current.message)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
   useEffect(() => {
@@ -48,14 +50,28 @@ export default function App() {
     }
     return all
   }, [trip.days, trip.placements])
+  const canonicalMarkdown = useMemo(() => serializeTripMarkdown(trip), [trip])
+  const csv = useMemo(() => serializeTripCsv(trip), [trip])
+  const json = useMemo(() => serializeTripJson(trip), [trip])
 
-  const addPlaces = (inputs: NewPlaceInput[]) => {
-    const bundles = inputs.map((input) => createPlaceBundle(input))
-    dispatch({ type: 'ADD_PLACES', bundles })
+  const updateMarkdown = (value: string) => {
+    setMarkdown(value)
+    const result = parseTripMarkdown(value)
+    setErrors(result.errors)
+    if (result.trip) dispatch({ type: 'REPLACE_TRIP', trip: result.trip })
   }
 
   const move = (placementId: string, targetDayId: string | null, targetIndex: number) => {
-    dispatch({ type: 'MOVE_PLACE', placementId, targetDayId, targetIndex })
+    const nextTrip = tripReducer(trip, {
+      type: 'MOVE_PLACE',
+      placementId,
+      targetDayId,
+      targetIndex,
+    })
+    if (nextTrip === trip) return
+    dispatch({ type: 'REPLACE_TRIP', trip: nextTrip })
+    setMarkdown(serializeTripMarkdown(nextTrip))
+    setErrors([])
   }
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
@@ -74,88 +90,105 @@ export default function App() {
     move(activePlacement.id, targetDayId, targetIndex)
   }
 
-  const deletePlace = (placeId: string, isScheduled: boolean) => {
-    if (isScheduled && !window.confirm('這個景點已排入行程，確定要刪除嗎？')) return
-    dispatch({ type: 'DELETE_PLACE', placeId })
+  const moveWithKeyboard = (
+    placement: Placement,
+    direction: 'left' | 'right' | 'up' | 'down',
+  ) => {
+    if (direction === 'up' || direction === 'down') {
+      const items = sortedFor(trip.placements, placement.dayId)
+      const currentIndex = items.findIndex((item) => item.id === placement.id)
+      const targetIndex = currentIndex + (direction === 'up' ? -1 : 1)
+      if (targetIndex < 0 || targetIndex >= items.length) return
+      move(placement.id, placement.dayId, targetIndex)
+      return
+    }
+
+    const containers = [null, ...trip.days.map((day) => day.id)]
+    const currentContainer = containers.indexOf(placement.dayId)
+    const targetContainer = currentContainer + (direction === 'left' ? -1 : 1)
+    if (targetContainer < 0 || targetContainer >= containers.length) return
+    move(placement.id, containers[targetContainer], Number.MAX_SAFE_INTEGER)
   }
 
   return (
     <main className={styles.appShell}>
-      <TripHeader
-        title={trip.title}
-        startDate={trip.startDate}
-        dayCount={trip.days.length}
-        dispatch={dispatch}
-        onAddDay={() => dispatch({
-          type: 'ADD_DAY',
-          day: { id: crypto.randomUUID(), date: null, label: '' },
-        })}
-      />
+      <header className={styles.hero}>
+        <p className="eyebrow">MARKDOWN-FIRST TRIP PLANNER</p>
+        <h1>{trip.title}</h1>
+        <p>寫 Markdown，拖曳排序，輸出永遠跟著你的行程。</p>
+      </header>
 
-      {notice && (
-        <div className={styles.notice} role="status">
-          <span>{notice}</span>
-          <button type="button" className="textButton" onClick={() => setNotice(null)}>關閉</button>
-        </div>
-      )}
+      {notice && <div className={styles.notice} role="status">{notice}</div>}
 
-      <section className={styles.inputPanel} aria-labelledby="places-heading">
-        <div className={styles.sectionIntro}>
-          <p className="eyebrow">STEP 1 · COLLECT</p>
-          <h2 id="places-heading">先把想去的地方都放進來</h2>
-          <p>逐筆輸入，或直接貼上旅行筆記。格式不完整的行不會影響其他景點。</p>
-        </div>
-        <div className={styles.inputGrid}>
-          <PlaceForm onAdd={(place) => addPlaces([place])} />
-          <MarkdownImport onImport={addPlaces} />
-        </div>
-      </section>
-
-      <section className={styles.plannerSection} aria-labelledby="planner-heading">
-        <div className={styles.sectionIntro}>
-          <p className="eyebrow">STEP 2 · ARRANGE</p>
-          <h2 id="planner-heading">拖曳，或用按鈕安排每天順序</h2>
-          <p>路線永遠跟著畫面順序，不會依時間或距離偷偷重排。</p>
-        </div>
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <div className={styles.board}>
-            <DayColumn
-              day={null}
-              placements={sortedFor(trip.placements, null)}
-              placesById={placesById}
-              days={trip.days}
-              warnings={{}}
-              onMove={move}
-              onUpdatePlace={(placeId, changes) => dispatch({ type: 'UPDATE_PLACE', placeId, changes })}
-              onUpdateSchedule={() => undefined}
-              onDeletePlace={deletePlace}
-            />
-            {trip.days.map((day) => (
-              <DayColumn
-                key={day.id}
-                day={day}
-                placements={sortedFor(trip.placements, day.id)}
-                placesById={placesById}
-                days={trip.days}
-                warnings={warningsByDay}
-                canDeleteDay={trip.days.length > 1}
-                onDeleteDay={() => {
-                  const hasPlaces = trip.placements.some((item) => item.dayId === day.id)
-                  if (hasPlaces && !window.confirm('這一天的景點會回到備案區，確定刪除嗎？')) return
-                  dispatch({ type: 'DELETE_DAY', dayId: day.id })
-                }}
-                onMove={move}
-                onUpdatePlace={(placeId, changes) => dispatch({ type: 'UPDATE_PLACE', placeId, changes })}
-                onUpdateSchedule={(placementId, startTime, durationMinutes) => dispatch({
-                  type: 'UPDATE_SCHEDULE', placementId, startTime, durationMinutes,
-                })}
-                onDeletePlace={deletePlace}
-              />
+      <section className={styles.workspace} aria-label="Markdown 行程工作區">
+        <div className={styles.editorPanel}>
+          <label htmlFor="trip-markdown">Markdown 行程</label>
+          <textarea
+            id="trip-markdown"
+            value={markdown}
+            onChange={(event) => updateMarkdown(event.target.value)}
+            spellCheck={false}
+            aria-describedby="markdown-help markdown-errors"
+          />
+          <p id="markdown-help" className={styles.help}>
+            使用 <code>## 備案</code>、<code>## Day 1 | 2026-10-03</code> 與
+            <code>- @09:00 名稱 | 地圖搜尋文字 | 分鐘 | 備註</code>。
+          </p>
+          <div id="markdown-errors" aria-live="polite">
+            {errors.map((error, index) => (
+              <p className="errorText" key={`${error.lineNumber}-${index}`}>
+                第 {error.lineNumber} 行：{error.message}
+              </p>
             ))}
           </div>
-        </DndContext>
+        </div>
+
+        <div className={styles.plannerPanel}>
+          <p className={styles.dragHint}>拖曳整張卡片；鍵盤用 Alt + ←/→ 跨欄、Alt + ↑/↓ 排序。</p>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <div className={styles.board}>
+              <DayColumn
+                day={null}
+                placements={sortedFor(trip.placements, null)}
+                placesById={placesById}
+                warnings={{}}
+                onKeyboardMove={moveWithKeyboard}
+              />
+              {trip.days.map((day) => (
+                <DayColumn
+                  key={day.id}
+                  day={day}
+                  placements={sortedFor(trip.placements, day.id)}
+                  placesById={placesById}
+                  warnings={warningsByDay}
+                  onKeyboardMove={moveWithKeyboard}
+                />
+              ))}
+            </div>
+          </DndContext>
+        </div>
       </section>
-      <footer className={styles.footer}>No account. No API key. Your route, your order.</footer>
+
+      <section className={styles.outputs} aria-labelledby="outputs-heading">
+        <div>
+          <p className="eyebrow">DERIVED OUTPUT</p>
+          <h2 id="outputs-heading">同一份行程，三種格式</h2>
+        </div>
+        <div className={styles.outputGrid}>
+          <article>
+            <h3>Markdown</h3>
+            <pre aria-label="標準 Markdown 輸出">{canonicalMarkdown}</pre>
+          </article>
+          <article>
+            <h3>CSV</h3>
+            <pre aria-label="CSV 輸出">{csv}</pre>
+          </article>
+          <article>
+            <h3>JSON</h3>
+            <pre aria-label="JSON 輸出">{json}</pre>
+          </article>
+        </div>
+      </section>
     </main>
   )
 }

@@ -14,7 +14,7 @@
 
 ## Drag-and-drop
 
-**Decision**: 使用 dnd-kit sortable containers，同時提供 keyboard sensor 與按鈕替代路徑。
+**Decision**: 使用 dnd-kit sortable containers 處理 pointer drag；focused card 以 Alt + 方向鍵提供無按鈕的鍵盤替代路徑。
 
 **Rationale**: 能支援同容器排序、跨容器移動及鍵盤操作，且不要求把 domain ordering
 耦合到 library event shape。

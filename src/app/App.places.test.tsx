@@ -1,40 +1,39 @@
-import { render, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, render, screen } from '@testing-library/react'
 import App from './App'
 
-describe('景點備案', () => {
-  it('validates single entry, then edits and deletes a place', async () => {
-    const user = userEvent.setup()
+const source = `# 東京旅行
+
+## 備案
+
+- 上野公園 | 上野公園 | 60 | 賞櫻
+
+## Day 1 | 2026-10-03
+
+- @09:00 淺草寺 | 東京都台東区浅草2-3-1 | 90 | 從雷門進入`
+
+describe('Markdown-first 編輯', () => {
+  it('renders one valid document and updates all derived outputs', () => {
     render(<App />)
+    fireEvent.change(screen.getByLabelText('Markdown 行程'), { target: { value: source } })
 
-    await user.click(screen.getByRole('button', { name: '加入備案' }))
-    expect(screen.getByRole('alert')).toHaveTextContent('請輸入景點名稱')
-
-    await user.type(screen.getByLabelText(/景點名稱/), '淺草寺')
-    await user.click(screen.getByRole('button', { name: '加入備案' }))
-    const card = screen.getByRole('article', { name: '淺草寺' })
-    expect(card).toBeInTheDocument()
-
-    await user.click(within(card).getByRole('button', { name: '編輯' }))
-    const name = within(card).getByLabelText('名稱')
-    await user.clear(name)
-    await user.type(name, '雷門')
-    await user.click(within(card).getByRole('button', { name: '儲存景點' }))
-    expect(screen.getByRole('article', { name: '雷門' })).toBeInTheDocument()
-
-    await user.click(within(screen.getByRole('article', { name: '雷門' })).getByRole('button', { name: '刪除' }))
-    expect(screen.queryByRole('article', { name: '雷門' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '東京旅行', level: 1 })).toBeInTheDocument()
+    expect(screen.getByRole('article', { name: '上野公園' })).toBeInTheDocument()
+    expect(screen.getByRole('article', { name: '淺草寺' })).toHaveTextContent('09:00–10:30')
+    expect(screen.getByLabelText('標準 Markdown 輸出')).toHaveTextContent('## Day 1 | 2026-10-03')
+    expect(screen.getByLabelText('CSV 輸出')).toHaveTextContent('上野公園')
+    expect(screen.getByLabelText('JSON 輸出')).toHaveTextContent('"startTime": "09:00"')
+    expect(screen.queryAllByRole('button')).toHaveLength(0)
   })
 
-  it('imports valid Markdown lines and reports invalid siblings', async () => {
-    const user = userEvent.setup()
+  it('keeps the last valid board when the draft becomes invalid', () => {
     render(<App />)
-    const input = screen.getByLabelText(/每行格式/)
-    await user.type(input, '- A | A | 0\n- B | B | 30')
-    await user.click(screen.getByRole('button', { name: '解析並匯入' }))
+    const editor = screen.getByLabelText('Markdown 行程')
+    fireEvent.change(editor, { target: { value: source } })
+    fireEvent.change(editor, { target: { value: `${source}\n- 壞資料 | 壞資料 | 0` } })
 
-    expect(screen.getByRole('article', { name: 'B' })).toBeInTheDocument()
-    expect(screen.getByRole('alert')).toHaveTextContent('第 1 行')
-    expect(input).toHaveValue('- A | A | 0\n- B | B | 30')
+    expect(editor).toHaveValue(`${source}\n- 壞資料 | 壞資料 | 0`)
+    expect(screen.getByText(/停留分鐘必須是 1 到 1,440/)).toBeInTheDocument()
+    expect(screen.getByRole('article', { name: '淺草寺' })).toBeInTheDocument()
+    expect(screen.queryByRole('article', { name: '壞資料' })).not.toBeInTheDocument()
   })
 })

@@ -1,41 +1,38 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 
-const movePlace = async (
-  page: Page,
-  name: string,
-  dayLabel: string,
-) => {
-  const card = page.getByRole('article', { name })
-  await card.getByLabel('移動到').selectOption({ label: dayLabel })
-  await card.getByRole('button', { name: '移動' }).click()
+const pointerDrag = async (page: Page, source: Locator, target: Locator) => {
+  const sourceBox = await source.boundingBox()
+  const targetBox = await target.boundingBox()
+  if (!sourceBox || !targetBox) throw new Error('Drag source or target is not visible')
+  await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(sourceBox.x + sourceBox.width / 2 + 12, sourceBox.y + sourceBox.height / 2 + 12, { steps: 3 })
+  await page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + Math.min(180, targetBox.height / 2), { steps: 12 })
+  await page.mouse.up()
 }
 
-test('imports, arranges, times, restores, and links a two-day trip', async ({ page }) => {
+test('edits Markdown, drags a place, synchronizes outputs, routes, and restores', async ({ page }) => {
   await page.goto('/')
-  await page.getByLabel(/每行格式/).fill([
-    '- 淺草寺 | 東京都台東区浅草2-3-1 | 90 | 從雷門進入',
-    '- 東京晴空塔 | 東京スカイツリー | 120',
-    '- 上野公園',
-    '- 谷中銀座 | 谷中銀座 | 60',
-  ].join('\n'))
-  await page.getByRole('button', { name: '解析並匯入' }).click()
-  await expect(page.getByText('已匯入 4 個有效景點。')).toBeVisible()
+  const editor = page.getByRole('textbox', { name: 'Markdown 行程' })
+  await editor.fill(`# 東京旅行
 
-  await page.getByRole('button', { name: '新增一天' }).click()
-  await movePlace(page, '淺草寺', 'Day 1')
-  await movePlace(page, '東京晴空塔', 'Day 1')
-  await movePlace(page, '上野公園', 'Day 2')
-  await movePlace(page, '谷中銀座', 'Day 2')
+## 備案
+- 淺草寺 | 東京都台東区浅草2-3-1 | 90 | 從雷門進入
+- 東京晴空塔 | 東京スカイツリー | 120
 
-  const asakusa = page.getByRole('article', { name: '淺草寺' })
-  const skytree = page.getByRole('article', { name: '東京晴空塔' })
-  await asakusa.getByLabel('開始時間').fill('09:00')
-  await skytree.getByLabel('開始時間').fill('10:00')
-  await expect(page.getByText('此時段與其他景點重疊。')).toHaveCount(2)
-  await skytree.getByLabel('開始時間').fill('10:30')
-  await expect(page.getByText('此時段與其他景點重疊。')).toHaveCount(0)
+## Day 1 | 2026-10-03
+
+## Day 2 | 2026-10-04`)
 
   const dayOne = page.getByRole('region', { name: 'Day 1' })
+  await pointerDrag(page, page.getByRole('article', { name: '淺草寺' }), dayOne)
+  await pointerDrag(page, page.getByRole('article', { name: '東京晴空塔' }), dayOne)
+
+  await expect(dayOne.getByRole('article')).toHaveCount(2)
+  await expect(editor).toHaveValue(/## Day 1 \| 2026-10-03[\s\S]*淺草寺[\s\S]*東京晴空塔/)
+  await expect(page.getByLabel('CSV 輸出')).toContainText('淺草寺')
+  await expect(page.getByLabel('JSON 輸出')).toContainText('東京晴空塔')
+
   const route = dayOne.getByRole('link', { name: /Google Maps 路線/ })
   const href = await route.getAttribute('href')
   expect(href).toContain('/maps/dir/')
@@ -44,7 +41,23 @@ test('imports, arranges, times, restores, and links a two-day trip', async ({ pa
   expect(href).toContain(encodeURIComponent('東京スカイツリー'))
 
   await page.reload()
-  await expect(page.getByRole('article', { name: '淺草寺' })).toBeVisible()
-  await expect(page.getByRole('region', { name: 'Day 2' }).getByRole('article')).toHaveCount(2)
-  await expect(page.getByRole('article', { name: '淺草寺' }).getByLabel('開始時間')).toHaveValue('09:00')
+  await expect(page.getByRole('region', { name: 'Day 1' }).getByRole('article')).toHaveCount(2)
+  await expect(page.getByRole('textbox', { name: 'Markdown 行程' })).toHaveValue(/淺草寺[\s\S]*東京晴空塔/)
+})
+
+test('moves a card with the keyboard alternative', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('textbox', { name: 'Markdown 行程' }).fill(`# 鍵盤測試
+
+## 備案
+- A | A | 60
+
+## Day 1`)
+
+  const card = page.getByRole('article', { name: 'A' })
+  await card.focus()
+  await page.keyboard.press('Alt+ArrowRight')
+
+  await expect(page.getByRole('region', { name: 'Day 1' }).getByRole('article', { name: 'A' })).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'Markdown 行程' })).toHaveValue(/## Day 1[\s\S]*- A \| A \| 60/)
 })

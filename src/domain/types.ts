@@ -83,6 +83,7 @@ export interface PlaceBundle {
 }
 
 export type TripAction =
+  | { type: 'REPLACE_TRIP'; trip: Trip }
   | { type: 'SET_TITLE'; title: string }
   | { type: 'SET_START_DATE'; startDate: string | null }
   | { type: 'ADD_DAY'; day: DayPlan }

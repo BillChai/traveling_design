@@ -1,6 +1,8 @@
 # Traveling Design
 
-一個 local-first 的旅遊行程編排 demo。使用者可以建立景點備案、安排多日行程、設定時間，並依景點順序開啟 Google Maps 路線。
+一個 local-first、Markdown-first 的旅遊行程編排 demo。使用者直接用 Markdown
+建立備案與日期，再以拖曳調整配置及順序；Markdown、CSV、JSON 與 Google Maps
+路線都由同一份有效行程即時產生。
 
 本專案使用 [GitHub Spec Kit](https://github.com/github/spec-kit) 進行 Spec-Driven Development。需求、技術設計與工作拆分分別維護在 `spec.md`、`plan.md` 與 `tasks.md`。
 
@@ -32,9 +34,11 @@ $speckit-converge
 ## MVP 邊界
 
 - 單一、多日旅程
-- UI 單筆新增與 Markdown 批次匯入
-- 備案區與每日行程間的拖曳排序
-- 手動開始時間、停留時間與衝突提示
+- 單一 Markdown 編輯器建立旅程、日期、時間及景點
+- 備案區與每日行程間的 pointer／keyboard 拖曳排序
+- 拖曳後自動回寫標準 Markdown
+- 即時 Markdown、CSV、JSON 輸出
+- Markdown 中的開始時間、停留時間與衝突提示
 - Google Maps Search／Directions URL
 - 瀏覽器 localStorage 保存
 - 無後端、無登入、無 Google API key、無內嵌地圖
@@ -80,22 +84,30 @@ GitHub Actions 會對 push 及 pull request 執行相同 gates。Node 版本同�
 
 ## Markdown 格式
 
-每行一個景點，允許一般文字或 Markdown list marker：
+使用 heading 建立備案與日期，每行一個景點：
 
 ```md
-- 淺草寺 | 東京都台東区浅草2-3-1 | 90 | 從雷門進入
-- 上野公園
+# 東京旅行
+
+## 備案
+
+- 上野公園 | 上野公園 | 60 | 賞櫻
+
+## Day 1 | 2026-10-03
+
+- @09:00 淺草寺 | 東京都台東区浅草2-3-1 | 90 | 從雷門進入
 ```
 
-欄位依序為 `名稱 | 地圖搜尋文字 | 停留分鐘 | 備註`。地圖搜尋文字省略時使用名稱，
-停留時間省略時為 60 分鐘；無效行會顯示行號，其他有效行仍會匯入。
+景點欄位依序為 `名稱 | 地圖搜尋文字 | 停留分鐘 | 備註`，排定景點可在名稱前加
+`@HH:MM`。地圖搜尋文字省略時使用名稱，停留時間省略時為 60 分鐘。文件只在
+完全有效時更新畫面；無效草稿會顯示行號並保留最後一次有效行程。
 
 ## 架構與規格
 
-- `src/domain/`：Markdown、日期、時間衝突、Maps URL 等純函式
+- `src/domain/`：完整 Markdown parser／serializer、CSV／JSON、時間衝突、Maps URL 等純函式
 - `src/app/tripReducer.ts`：維持 Place／Placement invariant 的狀態轉換
 - `src/persistence/`：versioned localStorage 與損毀資料 recovery
-- `src/components/`：表單、可排序景點卡與每日欄位
+- `src/components/`：display-only 可排序景點卡與每日欄位
 - `specs/001-itinerary-planner-demo/spec.md`：產品行為與驗收條件
 - `specs/001-itinerary-planner-demo/plan.md`：技術設計
 - `specs/001-itinerary-planner-demo/tasks.md`：實作順序與完成紀錄

@@ -118,7 +118,13 @@ export const normalizeTrip = (
     return { ...existing, dayId, startTime: dayId ? existing.startTime : null }
   })
 
-  const days = relabelDays(trip.days.length ? trip.days : [{ id: idFactory(), date: null, label: '' }], trip.startDate)
+  const days = (trip.days.length
+    ? trip.days
+    : [{ id: idFactory(), date: null, label: 'Day 1' }]
+  ).map((day, index) => ({
+    ...day,
+    label: day.label.trim() || `Day ${index + 1}`,
+  }))
   return { ...trip, days, placements: normalizeOrders(placements, days) }
 }
 
@@ -149,6 +155,8 @@ const movePlacement = (
 
 export const tripReducer = (state: Trip, action: TripAction): Trip => {
   switch (action.type) {
+    case 'REPLACE_TRIP':
+      return normalizeTrip(action.trip)
     case 'SET_TITLE':
       return { ...state, title: action.title }
     case 'SET_START_DATE': {
