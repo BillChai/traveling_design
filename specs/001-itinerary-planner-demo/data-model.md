@@ -19,8 +19,8 @@
 | Field | Type | Rules |
 |-------|------|-------|
 | id | string | 非空 UUID |
-| name | string | trim 後 1–120 字元 |
-| locationQuery | string | trim 後非空；未輸入時等於 name |
+| name | string | trim 後 1–80 字元 |
+| locationQuery | string | trim 後 1–80 字元；未輸入時等於 name |
 | notes | string | 最多 1,000 字元 |
 | defaultDurationMinutes | integer | 1–1,440，預設 60 |
 

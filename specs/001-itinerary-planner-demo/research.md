@@ -63,7 +63,7 @@
 
 ## Toolchain
 
-**Decision**: Node.js 22.23.2、npm、React 19.3、Vite 8.3、Vitest 5 與
+**Decision**: Node.js 22.23.2、npm、React 19.3、Vite 7.3.6、Vitest 5 與
 Playwright 1.63，精確版本由 `package-lock.json` 固定。
 
 **Rationale**: Node 22 是 LTS 線且符合現行 Vite 需求；npm 已存在於使用者環境，
@@ -73,3 +73,5 @@ Playwright 1.63，精確版本由 `package-lock.json` 固定。
 
 - Node 18：不符合現行 Vite 需求。
 - Node 26：目前不是本專案選定的 LTS 基線。
+- Vite 8：目前 `@vitejs/plugin-react` 的正式 peer range 尚未接受 Vite 8，避免以
+  `--force` 安裝未宣告相容的組合。

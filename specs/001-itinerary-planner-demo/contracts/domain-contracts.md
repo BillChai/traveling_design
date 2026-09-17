@@ -9,7 +9,7 @@ parsePlacesMarkdown(input: string): ImportResult
 - 接受 `- `、`* `、`+ ` 或 `1. ` 開頭，也接受沒有 list marker 的非空行。
 - 移除 marker 後以 `|` 切成最多四個欄位。
 - 欄位依序為 name、locationQuery、durationMinutes、notes。
-- name 空白或 duration 不是 1–1,440 整數時，該行進入 errors。
+- name／locationQuery 超過 80 字元、name 空白或 duration 不是 1–1,440 整數時，該行進入 errors。
 - 不因單行錯誤丟出 exception；有效行仍在 places。
 
 ## Time calculation

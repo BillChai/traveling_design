@@ -15,7 +15,7 @@ localStorage 文件保存；測試涵蓋 domain、UI integration 與主要瀏覽
 
 **Language/Version**: TypeScript 5.x on Node.js 22.23.2
 
-**Primary Dependencies**: React 19.3, Vite 8.3, `@dnd-kit/core` 6.3,
+**Primary Dependencies**: React 19.3, Vite 7.3.6, `@dnd-kit/core` 6.3,
 `@dnd-kit/sortable` 10
 
 **Storage**: Browser localStorage using a versioned JSON document and raw-value backup on

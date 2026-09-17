@@ -1,0 +1,78 @@
+.appShell {
+  width: min(1480px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 34px 0 28px;
+}
+
+.notice {
+  margin: 18px 0;
+  padding: 12px 16px;
+  border: 1px solid #d6a45d;
+  border-radius: 12px;
+  background: var(--warning-soft);
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.inputPanel,
+.plannerSection {
+  margin-top: 28px;
+  padding: clamp(20px, 3vw, 36px);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgb(255 253 248 / 86%);
+  box-shadow: var(--shadow);
+}
+
+.sectionIntro {
+  max-width: 740px;
+  margin-bottom: 24px;
+}
+
+.sectionIntro h2 {
+  margin: 4px 0 8px;
+  font-size: clamp(1.55rem, 3vw, 2.4rem);
+  letter-spacing: -0.035em;
+}
+
+.sectionIntro p:last-child {
+  margin: 0;
+  color: var(--muted);
+}
+
+.inputGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.inputGrid > form {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+}
+
+.board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(320px, 1fr);
+  gap: 18px;
+  overflow-x: auto;
+  padding: 4px 3px 18px;
+  scroll-snap-type: x proximity;
+}
+
+.footer {
+  padding: 32px 8px 4px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 760px) {
+  .appShell { width: min(100% - 20px, 720px); padding-top: 18px; }
+  .inputGrid { grid-template-columns: 1fr; }
+  .board { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: 1fr; overflow-x: visible; }
+}
