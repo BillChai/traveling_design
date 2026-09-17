@@ -39,4 +39,66 @@ $speckit-converge
 - 瀏覽器 localStorage 保存
 - 無後端、無登入、無 Google API key、無內嵌地圖
 
-詳細需求會建立於 `specs/001-itinerary-planner-demo/`。
+## 本機啟動
+
+先確認目前 terminal 使用 Node 22。若有 nvm：
+
+```bash
+nvm use
+```
+
+若使用本計畫安裝的 Homebrew `node@22`：
+
+```bash
+export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
+node --version
+```
+
+接著安裝依賴並啟動：
+
+```bash
+npm ci
+npm run dev
+```
+
+Vite 預設會顯示 `http://localhost:5173`。首次執行瀏覽器測試前，先安裝 Chromium：
+
+```bash
+npx playwright install chromium
+```
+
+## 驗證
+
+```bash
+npm test
+npm run build
+npm run test:e2e
+```
+
+GitHub Actions 會對 push 及 pull request 執行相同 gates。Node 版本同時固定於
+`.nvmrc`、`.node-version` 與 `package.json#engines`。
+
+## Markdown 格式
+
+每行一個景點，允許一般文字或 Markdown list marker：
+
+```md
+- 淺草寺 | 東京都台東区浅草2-3-1 | 90 | 從雷門進入
+- 上野公園
+```
+
+欄位依序為 `名稱 | 地圖搜尋文字 | 停留分鐘 | 備註`。地圖搜尋文字省略時使用名稱，
+停留時間省略時為 60 分鐘；無效行會顯示行號，其他有效行仍會匯入。
+
+## 架構與規格
+
+- `src/domain/`：Markdown、日期、時間衝突、Maps URL 等純函式
+- `src/app/tripReducer.ts`：維持 Place／Placement invariant 的狀態轉換
+- `src/persistence/`：versioned localStorage 與損毀資料 recovery
+- `src/components/`：表單、可排序景點卡與每日欄位
+- `specs/001-itinerary-planner-demo/spec.md`：產品行為與驗收條件
+- `specs/001-itinerary-planner-demo/plan.md`：技術設計
+- `specs/001-itinerary-planner-demo/tasks.md`：實作順序與完成紀錄
+- `specs/001-itinerary-planner-demo/quickstart.md`：手動驗收流程
+
+Google Maps 功能只產生 Search／Directions URL，不使用 Maps SDK、API key 或任何付費 API。
