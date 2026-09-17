@@ -41,6 +41,21 @@ $speckit-converge
 
 ## 本機啟動
 
+先確認目前 terminal 使用 Node 22。若有 nvm：
+
+```bash
+nvm use
+```
+
+若使用本計畫安裝的 Homebrew `node@22`：
+
+```bash
+export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
+node --version
+```
+
+接著安裝依賴並啟動：
+
 ```bash
 npm ci
 npm run dev
