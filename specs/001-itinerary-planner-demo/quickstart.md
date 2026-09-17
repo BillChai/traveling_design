@@ -50,3 +50,9 @@ npm run test:e2e
 2. 重新整理。
 3. 應用程式應顯示 recovery 訊息與可操作的初始旅程。
 4. localStorage 應存在 `traveling-design.trip.backup.` 開頭的備份 key。
+
+## Performance baseline
+
+`src/app/tripReducer.performance.test.ts` 建立 14 天與 50 個景點的固定資料集，執行新增、
+跨日移動及排序操作。每個狀態更新在測試環境的 200 毫秒 budget 內完成；測試不呼叫
+網路或依賴 wall-clock 日期。
