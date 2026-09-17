@@ -31,8 +31,9 @@ stacked layout on narrow screens
 **Performance Goals**: User-visible state updates complete within 200 ms for the MVP
 validation dataset
 
-**Constraints**: No form-based editor, backend, authentication, Google SDK, API key, paid
-runtime dependency, or automatic route/time lookup; encoded map URLs must be at most 2,048 characters
+**Constraints**: No form-based editor, backend, authentication, chargeable Google API,
+or automatic route/time lookup; encoded map URLs must be at most 2,048 characters. The
+optional no-charge Maps Embed preview is defined separately in feature `002`.
 
 **Scale/Scope**: One trip, up to 14 days and 50 places as the validation baseline
 
@@ -46,7 +47,7 @@ runtime dependency, or automatic route/time lookup; encoded map URLs must be at 
 | Local First | Static client application with localStorage only | PASS |
 | Minimal Scope | No server, account, map SDK, autocomplete, or optimization | PASS |
 | Deterministic Behavior | Parser, reducer, time, storage, and URL logic are pure/testable boundaries | PASS |
-| No Paid Dependency | Integration is limited to ordinary Google Maps URLs | PASS |
+| No Paid Dependency | Keyless URLs remain baseline; feature `002` only permits the no-charge Embed SKU | PASS |
 | Accessible Interaction | Pointer drag plus focused-card Alt + arrow keyboard movement | PASS |
 | Testable Requirements | Unit, integration, build, and browser smoke gates are included | PASS |
 | User Data Safety | Schema validation, raw backup, and safe initial-state fallback are designed | PASS |
@@ -136,7 +137,9 @@ React；UI 元件只透過 typed props 與 reducer actions 變更狀態。測試
 - 一站使用 Search URL，多站使用 Directions URL。
 - 一段最多五站；若加入下一站將超過五站或 2,048 字元，就在前一站結束該段，
   並以相同站點作為下一段起點。
-- 不傳 `travelmode`，不呼叫任何 Google API。
+- 普通 Search／Directions URL 不傳 `travelmode`，也不呼叫任何 Google API。
+- Feature `002-google-maps-route-preview` 可選擇性地把相同分段轉成 Maps Embed iframe；
+  缺少 key 時本段普通 URL 行為不變。
 
 ### UI and accessibility
 
@@ -157,5 +160,6 @@ React；UI 元件只透過 typed props 與 reducer actions 變更狀態。測試
 
 ## Post-Design Constitution Check
 
-設計沒有新增 runtime service、credential 或付費依賴；所有高風險行為均位於可單獨測試的
-domain／persistence 邊界，並提供非拖曳操作路徑。八項 constitution gate 全數維持 PASS。
+核心設計沒有新增必要 runtime service 或付費依賴；feature `002` 的 optional browser key
+與 no-charge Embed preview 已由 constitution 1.1.0 明確限制。所有高風險行為均位於可單獨
+測試的 domain／persistence 邊界，並提供非拖曳操作路徑。八項 constitution gate 全數維持 PASS。

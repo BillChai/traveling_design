@@ -1,8 +1,8 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { buildGoogleMapsLinks } from '../domain/maps'
-import type { DayPlan, MapLink, Place, Placement, ScheduleWarning } from '../domain/types'
+import { buildGoogleMapsEmbedUrls, buildGoogleMapsLinks } from '../domain/maps'
+import type { DayPlan, MapEmbed, MapLink, Place, Placement, ScheduleWarning } from '../domain/types'
 import { PlaceCard } from './PlaceCard'
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => `${hour.toString().padStart(2, '0')}:00`)
@@ -12,6 +12,7 @@ interface DayColumnProps {
   placements: Placement[]
   placesById: Map<string, Place>
   warnings: Record<string, ScheduleWarning[]>
+  mapsEmbedApiKey?: string
   onKeyboardMove: (
     placement: Placement,
     direction: 'left' | 'right' | 'up' | 'down',
@@ -54,7 +55,14 @@ function HourSlot({ id, dayId, startTime, children }: DropAreaProps) {
   )
 }
 
-export function DayColumn({ day, placements, placesById, warnings, onKeyboardMove }: DayColumnProps) {
+export function DayColumn({
+  day,
+  placements,
+  placesById,
+  warnings,
+  mapsEmbedApiKey = '',
+  onKeyboardMove,
+}: DayColumnProps) {
   const containerId = `container:${day?.id ?? 'backlog'}`
   const droppable = useDroppable({
     id: containerId,
@@ -71,6 +79,9 @@ export function DayColumn({ day, placements, placesById, warnings, onKeyboardMov
     return place ? [{ id: place.id, name: place.name, locationQuery: place.locationQuery }] : []
   })
   const links: MapLink[] = day ? buildGoogleMapsLinks(routePlaces) : []
+  const embeds: MapEmbed[] = day
+    ? buildGoogleMapsEmbedUrls(routePlaces, mapsEmbedApiKey)
+    : []
   const untimed = day ? placements.filter((placement) => !placement.startTime) : placements
 
   const cards = (items: Placement[]) => items.map((placement) => {
@@ -100,11 +111,30 @@ export function DayColumn({ day, placements, placesById, warnings, onKeyboardMov
       </header>
 
       {day && links.length > 0 && (
-        <div className="routeLinks">
-          {links.map((link) => (
-            <a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label} ↗</a>
-          ))}
-        </div>
+        <>
+          {embeds.length > 0 && (
+            <div className="mapPreviews">
+              {embeds.map((embed) => (
+                <iframe
+                  key={embed.url}
+                  title={`${day.label} ${embed.label}`}
+                  src={embed.url}
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
+                />
+              ))}
+            </div>
+          )}
+          <div className="routeLinks">
+            {embeds.length === 0 && (
+              <p>設定 <code>VITE_GOOGLE_MAPS_EMBED_API_KEY</code> 可在頁面內預覽路線。</p>
+            )}
+            {links.map((link) => (
+              <a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label} ↗</a>
+            ))}
+          </div>
+        </>
       )}
 
       <SortableContext items={placements.map((item) => item.id)} strategy={verticalListSortingStrategy}>

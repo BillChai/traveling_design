@@ -24,6 +24,7 @@ const sortedFor = (placements: Placement[], dayId: string | null) =>
   placements.filter((item) => item.dayId === dayId).sort((a, b) => a.order - b.order)
 
 export default function App() {
+  const mapsEmbedApiKey = import.meta.env.VITE_GOOGLE_MAPS_EMBED_API_KEY?.trim() ?? ''
   const initialLoad = useRef<LoadTripResult | null>(null)
   if (!initialLoad.current) initialLoad.current = loadTrip(window.localStorage)
   const [trip, dispatch] = useReducer(tripReducer, initialLoad.current.trip)
@@ -180,6 +181,7 @@ export default function App() {
                   placements={sortedFor(trip.placements, day.id)}
                   placesById={placesById}
                   warnings={warningsByDay}
+                  mapsEmbedApiKey={mapsEmbedApiKey}
                   onKeyboardMove={moveWithKeyboard}
                 />
               ))}

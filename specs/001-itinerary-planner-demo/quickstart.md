@@ -44,7 +44,8 @@ npm run test:e2e
 5. 確認左側 Markdown 自動將景點行移入對應 heading，並加入相應的 `@HH:00`。
 6. 把 Day 1 第二站改成 `@10:00`，確認結束時間與重疊警告。
 7. 確認下方 Markdown、CSV、JSON 都採用目前容器、時間及順序。
-8. 開啟 Day 1 Google Maps 路線，確認沒有 `travelmode` 且站點順序正確。
+8. 開啟 Day 1 Google Maps 路線，確認沒有 `travelmode` 且站點順序正確；若已設定
+   `VITE_GOOGLE_MAPS_EMBED_API_KEY`，同時確認頁面內預覽顯示相同順序。
 9. 重新整理，確認內容與順序不變。
 
 ## Invalid draft scenario

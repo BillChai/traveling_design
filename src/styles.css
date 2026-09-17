@@ -146,6 +146,14 @@ textarea { resize: vertical; }
 .routeLinks { display: grid; gap: 6px; margin: 14px 0; padding: 10px; border-radius: 10px; background: var(--accent-soft); font-size: 0.84rem; }
 .routeLinks p { margin: 0; color: var(--muted); }
 .routeLinks a { color: var(--accent); font-weight: 800; }
+.mapPreviews { display: grid; gap: 10px; margin: 14px 0; }
+.mapPreviews iframe {
+  width: 100%;
+  min-height: 260px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #eeeae1;
+}
 .cardList { display: grid; gap: 12px; min-height: 120px; margin-top: 14px; }
 .emptyState { margin: 0; padding: 26px 16px; border: 1px dashed #b8b3a8; border-radius: 12px; color: var(--muted); text-align: center; }
 

@@ -77,6 +77,12 @@ export interface MapLink {
   placeIds: string[]
 }
 
+export interface MapEmbed {
+  label: string
+  url: string
+  placeIds: string[]
+}
+
 export interface PlaceBundle {
   place: Place
   placement: Placement

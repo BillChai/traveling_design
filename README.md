@@ -40,9 +40,9 @@ $speckit-converge
 - 拖曳後自動回寫標準 Markdown
 - 即時 Markdown、CSV、JSON 輸出
 - Markdown 中的開始時間、停留時間與衝突提示
-- Google Maps Search／Directions URL
+- Google Maps Search／Directions URL，以及 optional 內嵌路線預覽
 - 瀏覽器 localStorage 保存
-- 無後端、無登入、無 Google API key、無內嵌地圖
+- 無後端、無登入、無付費 Google Maps API
 
 ## 本機啟動
 
@@ -71,6 +71,26 @@ Vite 預設會顯示 `http://localhost:5173`。首次執行瀏覽器測試前，
 ```bash
 npx playwright install chromium
 ```
+
+### Google Maps 路線預覽（選用）
+
+普通 Search／Directions 連結不需要 API key。若要在頁面內直接看到互動路線，請啟用
+[Maps Embed API](https://developers.google.com/maps/documentation/embed/get-started)，再建立：
+
+```bash
+cp .env.example .env.local
+```
+
+並在 `.env.local` 設定：
+
+```dotenv
+VITE_GOOGLE_MAPS_EMBED_API_KEY=你的_browser_key
+```
+
+修改環境變數後須重新啟動 Vite。Maps Embed API 的 Embed SKU 無使用費，但 Google
+仍要求 Cloud API key 與 billing account。此 key 會出現在瀏覽器 URL 中，因此應建立獨立
+key，限制為 Maps Embed API，並設定 localhost／正式網域的 website referrer restriction；
+真實 `.env.local` 已被 `.gitignore` 排除，不得提交。
 
 ## 驗證
 
@@ -114,4 +134,5 @@ GitHub Actions 會對 push 及 pull request 執行相同 gates。Node 版本同�
 - `specs/001-itinerary-planner-demo/tasks.md`：實作順序與完成紀錄
 - `specs/001-itinerary-planner-demo/quickstart.md`：手動驗收流程
 
-Google Maps 功能只產生 Search／Directions URL，不使用 Maps SDK、API key 或任何付費 API。
+Google Maps 基本功能只產生不需 key 的 Search／Directions URL。選用的 iframe preview
+使用免費 Maps Embed API；不使用 Maps JavaScript、Places、Routes 或其他付費 API。

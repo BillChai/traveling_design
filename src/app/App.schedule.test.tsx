@@ -1,5 +1,8 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, vi } from 'vitest'
 import App from './App'
+
+afterEach(() => vi.unstubAllEnvs())
 
 describe('多日視覺編排', () => {
   it('creates backlog and day columns only from Markdown headings', () => {
@@ -50,5 +53,51 @@ describe('多日視覺編排', () => {
     expect(within(dayOne).getByRole('region', { name: '未設定時間' })).toContainElement(
       screen.getByRole('article', { name: 'B' }),
     )
+  })
+
+  it('renders an ordered Google Maps preview when the Embed key is configured', () => {
+    vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_API_KEY', 'test-key')
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Markdown 行程'), {
+      target: {
+        value: `# 路線預覽
+
+## 備案
+
+## Day 1
+- @09:00 A | 東京站 | 60
+- @11:00 B | 淺草寺 | 60`,
+      },
+    })
+
+    const preview = screen.getByTitle('Day 1 Google Maps 路線預覽')
+    const url = new URL(preview.getAttribute('src') ?? '')
+    expect(url.pathname).toBe('/maps/embed/v1/directions')
+    expect(url.searchParams.get('origin')).toBe('東京站')
+    expect(url.searchParams.get('destination')).toBe('淺草寺')
+    expect(url.searchParams.has('mode')).toBe(false)
+    expect(preview).toHaveAttribute('loading', 'lazy')
+    expect(preview).toHaveAttribute('allowfullscreen')
+    expect(preview).toHaveAttribute('referrerpolicy', 'strict-origin-when-cross-origin')
+  })
+
+  it('keeps the route link and shows setup guidance when the Embed key is absent', () => {
+    vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_API_KEY', '')
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Markdown 行程'), {
+      target: {
+        value: `# 路線預覽
+
+## 備案
+
+## Day 1
+- A | 東京站 | 60
+- B | 淺草寺 | 60`,
+      },
+    })
+
+    expect(screen.queryByTitle(/Google Maps 路線預覽/)).not.toBeInTheDocument()
+    expect(screen.getByText(/VITE_GOOGLE_MAPS_EMBED_API_KEY/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /開啟 Google Maps 路線/ })).toBeInTheDocument()
   })
 })

@@ -138,7 +138,10 @@
 
 ## Out of Scope
 
-- 景點搜尋、autocomplete、內嵌地圖與自動路線最佳化。
+- 景點搜尋、autocomplete、Maps JavaScript API 與自動路線最佳化。
 - 自動交通時間、營業時間、預約、預算、帳號、後端、同步與多人協作。
 - 自訂 Markdown dialect、保留非語意 whitespace 或任意註解位置。
 - CSV／JSON 檔案下載、雲端分享與外部匯入。
+
+Optional Maps Embed route preview 由後續 `002-google-maps-route-preview` feature spec 定義；
+本規格的 keyless Search／Directions URL 仍是必要 fallback。
