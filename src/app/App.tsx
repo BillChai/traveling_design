@@ -61,12 +61,18 @@ export default function App() {
     if (result.trip) dispatch({ type: 'REPLACE_TRIP', trip: result.trip })
   }
 
-  const move = (placementId: string, targetDayId: string | null, targetIndex: number) => {
+  const move = (
+    placementId: string,
+    targetDayId: string | null,
+    targetIndex: number,
+    startTime?: string | null,
+  ) => {
     const nextTrip = tripReducer(trip, {
       type: 'MOVE_PLACE',
       placementId,
       targetDayId,
       targetIndex,
+      startTime,
     })
     if (nextTrip === trip) return
     dispatch({ type: 'REPLACE_TRIP', trip: nextTrip })
@@ -83,11 +89,22 @@ export default function App() {
       ? overPlacement.dayId
       : (over.data.current?.dayId as string | null | undefined)
     if (targetDayId === undefined) return
+    const targetStartTime = overPlacement
+      ? overPlacement.startTime
+      : (over.data.current?.startTime as string | null | undefined)
     const targetItems = sortedFor(trip.placements, targetDayId)
-    const targetIndex = overPlacement
-      ? targetItems.findIndex((item) => item.id === overPlacement.id)
-      : targetItems.length
-    move(activePlacement.id, targetDayId, targetIndex)
+      .filter((item) => item.id !== activePlacement.id)
+    let targetIndex = targetItems.length
+    if (overPlacement) {
+      targetIndex = targetItems.findIndex((item) => item.id === overPlacement.id)
+      if (targetIndex < 0) targetIndex = targetItems.length
+    } else if (targetStartTime) {
+      const nextTimedIndex = targetItems.findIndex(
+        (item) => item.startTime === null || item.startTime > targetStartTime,
+      )
+      if (nextTimedIndex >= 0) targetIndex = nextTimedIndex
+    }
+    move(activePlacement.id, targetDayId, targetIndex, targetStartTime)
   }
 
   const moveWithKeyboard = (
@@ -144,7 +161,9 @@ export default function App() {
         </div>
 
         <div className={styles.plannerPanel}>
-          <p className={styles.dragHint}>拖曳整張卡片；鍵盤用 Alt + ←/→ 跨欄、Alt + ↑/↓ 排序。</p>
+          <p className={styles.dragHint}>
+            拖到小時格會寫入 @HH:00；鍵盤用 Alt + ←/→ 跨欄、Alt + ↑/↓ 排序。
+          </p>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <div className={styles.board}>
               <DayColumn

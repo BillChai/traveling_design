@@ -110,6 +110,28 @@ describe('tripReducer', () => {
     expect(trip.placements[0].startTime).toBeNull()
   })
 
+  it('assigns an explicit whole-hour start time when moving into an hourly slot', () => {
+    let trip = createStarterTrip(ids('trip', 'day-1'))
+    trip = tripReducer(trip, { type: 'ADD_PLACE', bundle: makeBundle('A', 'a') })
+    trip = tripReducer(trip, {
+      type: 'MOVE_PLACE',
+      placementId: 'placement-a',
+      targetDayId: 'day-1',
+      targetIndex: 0,
+      startTime: '09:00',
+    })
+    expect(trip.placements[0]).toMatchObject({ dayId: 'day-1', startTime: '09:00' })
+
+    trip = tripReducer(trip, {
+      type: 'MOVE_PLACE',
+      placementId: 'placement-a',
+      targetDayId: 'day-1',
+      targetIndex: 0,
+      startTime: null,
+    })
+    expect(trip.placements[0].startTime).toBeNull()
+  })
+
   it('updates the backlog duration when editing a place default', () => {
     let trip = createStarterTrip(ids('trip', 'day-1'))
     trip = tripReducer(trip, { type: 'ADD_PLACE', bundle: makeBundle('A', 'a') })

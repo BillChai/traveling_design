@@ -7,7 +7,7 @@ const pointerDrag = async (page: Page, source: Locator, target: Locator) => {
   await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2)
   await page.mouse.down()
   await page.mouse.move(sourceBox.x + sourceBox.width / 2 + 12, sourceBox.y + sourceBox.height / 2 + 12, { steps: 3 })
-  await page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + Math.min(180, targetBox.height / 2), { steps: 12 })
+  await page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + targetBox.height / 2, { steps: 2 })
   await page.mouse.up()
 }
 
@@ -25,12 +25,25 @@ test('edits Markdown, drags a place, synchronizes outputs, routes, and restores'
 ## Day 2 | 2026-10-04`)
 
   const dayOne = page.getByRole('region', { name: 'Day 1' })
-  await pointerDrag(page, page.getByRole('article', { name: '淺草寺' }), dayOne)
-  await pointerDrag(page, page.getByRole('article', { name: '東京晴空塔' }), dayOne)
+  await pointerDrag(page, page.getByRole('article', { name: '淺草寺' }), dayOne.getByRole('group', { name: '09:00' }))
+
+  await expect(dayOne.getByRole('group', { name: '09:00' }).getByRole('article', { name: '淺草寺' })).toBeVisible()
+  await expect(editor).toHaveValue(/@09:00 淺草寺/)
+
+  await editor.fill(`# 東京旅行
+
+## 備案
+
+## Day 1 | 2026-10-03
+- @09:00 淺草寺 | 東京都台東区浅草2-3-1 | 90 | 從雷門進入
+- @11:00 東京晴空塔 | 東京スカイツリー | 120
+
+## Day 2 | 2026-10-04`)
 
   await expect(dayOne.getByRole('article')).toHaveCount(2)
-  await expect(editor).toHaveValue(/## Day 1 \| 2026-10-03[\s\S]*淺草寺[\s\S]*東京晴空塔/)
+  await expect(editor).toHaveValue(/## Day 1 \| 2026-10-03[\s\S]*@09:00 淺草寺[\s\S]*@11:00 東京晴空塔/)
   await expect(page.getByLabel('CSV 輸出')).toContainText('淺草寺')
+  await expect(page.getByLabel('CSV 輸出')).toContainText('09:00')
   await expect(page.getByLabel('JSON 輸出')).toContainText('東京晴空塔')
 
   const route = dayOne.getByRole('link', { name: /Google Maps 路線/ })

@@ -39,12 +39,13 @@ npm run test:e2e
    ```
 
 2. 確認四站都出現在備案，Day 1／Day 2 為空。
-3. 將兩站拖入 Day 1、兩站拖入 Day 2，再於 Day 1 重新排序。
-4. 確認左側 Markdown 自動將景點行移入對應 heading，順序與畫面一致。
-5. 在 Day 1 景點名稱前加入 `@09:00` 與 `@10:00`，確認結束時間與重疊警告。
-6. 確認下方 Markdown、CSV、JSON 都採用目前容器、時間及順序。
-7. 開啟 Day 1 Google Maps 路線，確認沒有 `travelmode` 且站點順序正確。
-8. 重新整理，確認內容與順序不變。
+3. 確認每一天顯示 `00:00` 至 `23:00` 共 24 個 hourly slots，以及「未設定時間」。
+4. 將兩站拖入 Day 1 的 09:00／11:00，兩站拖入 Day 2 的指定小時。
+5. 確認左側 Markdown 自動將景點行移入對應 heading，並加入相應的 `@HH:00`。
+6. 把 Day 1 第二站改成 `@10:00`，確認結束時間與重疊警告。
+7. 確認下方 Markdown、CSV、JSON 都採用目前容器、時間及順序。
+8. 開啟 Day 1 Google Maps 路線，確認沒有 `travelmode` 且站點順序正確。
+9. 重新整理，確認內容與順序不變。
 
 ## Invalid draft scenario
 

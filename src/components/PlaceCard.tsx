@@ -11,7 +11,10 @@ interface PlaceCardProps {
 }
 
 export function PlaceCard({ place, placement, warnings, onKeyboardMove }: PlaceCardProps) {
-  const sortable = useSortable({ id: placement.id, data: { dayId: placement.dayId } })
+  const sortable = useSortable({
+    id: placement.id,
+    data: { dayId: placement.dayId, startTime: placement.startTime },
+  })
   const endTime = calculateEndTime(placement.startTime, placement.durationMinutes)
   const style = {
     transform: CSS.Transform.toString(sortable.transform),

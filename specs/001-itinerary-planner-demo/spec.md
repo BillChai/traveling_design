@@ -20,6 +20,8 @@
 - CSV 與 JSON 是目前有效行程的唯讀衍生輸出，不另行保存。
 - 路線不預設交通方式；時間衝突只提示，不自動排序。
 - 視覺上不提供移動按鈕，但拖曳卡片必須支援 pointer 與鍵盤操作。
+- 每個日期欄以可捲動的 `00:00` 至 `23:00` hourly timeline 顯示；沒有開始時間的景點置於日期內的「未設定時間」。
+- 使用 pointer 將景點拖到 hourly slot 時，開始時間設為該小時的 `HH:00` 並回寫 Markdown。
 
 ## User Scenarios & Testing
 
@@ -48,6 +50,8 @@
 2. **Given** 同一天有多個景點，**When** 使用者拖曳排序，**Then** Markdown 與所有輸出採用新順序。
 3. **Given** 已排定景點被拖回備案，**When** 移動完成，**Then** 開始時間被清除。
 4. **Given** 使用者只使用鍵盤，**When** 以 Alt 與方向鍵操作 focused card，**Then** 能跨欄及調整同欄順序。
+5. **Given** 某一天已有排定與未排定景點，**When** 行程渲染，**Then** 排定景點出現在對應小時列，未排定景點出現在「未設定時間」。
+6. **Given** 使用者將景點拖到 Day 1 的 09:00 slot，**When** 放下卡片，**Then** 卡片顯示於 09:00 列且 Markdown 加上 `@09:00`。
 
 ### User Story 3 - 取得排序後的資料輸出（Priority: P1）
 
@@ -118,6 +122,10 @@
 - **FR-016**: 損毀或不支援的儲存內容 MUST 備份原始值並載入安全 starter document。
 - **FR-017**: UI MUST 使用繁體中文，錯誤及警告不得只依賴顏色。
 - **FR-018**: UI MUST NOT 提供逐筆景點表單、景點編輯表單、日期管理表單或可見的移動控制按鈕。
+- **FR-019**: 每個日期 MUST 顯示 `00:00` 至 `23:00` 共 24 個一小時間隔，並在固定高度容器內垂直捲動。
+- **FR-020**: 日期內沒有開始時間的景點 MUST 顯示於獨立的「未設定時間」drop area。
+- **FR-021**: 景點拖入 hourly slot MUST 將開始時間更新為該 slot 的 `HH:00`；拖入「未設定時間」 MUST 清除開始時間。
+- **FR-022**: Hourly slot drop 完成後 MUST 同步更新 canonical Markdown、CSV、JSON 與 localStorage。
 
 ## Success Criteria
 
@@ -126,6 +134,7 @@
 - **SC-003**: Parser、serializer、CSV、JSON、時間與 Maps URL 都有 deterministic tests。
 - **SC-004**: 50 個景點與 14 天文件的解析及狀態更新在測試環境 200 毫秒內完成。
 - **SC-005**: `npm test`、`npm run build` 與 Playwright smoke test 全部通過。
+- **SC-006**: 每個日期渲染恰好 24 個可辨識 hourly slots，且真實 pointer drop 到指定 slot 後四種資料表示的開始時間一致。
 
 ## Out of Scope
 

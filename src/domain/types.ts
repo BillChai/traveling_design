@@ -97,6 +97,7 @@ export type TripAction =
       placementId: string
       targetDayId: ContainerId
       targetIndex: number
+      startTime?: string | null
     }
   | {
       type: 'UPDATE_SCHEDULE'

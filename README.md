@@ -36,6 +36,7 @@ $speckit-converge
 - 單一、多日旅程
 - 單一 Markdown 編輯器建立旅程、日期、時間及景點
 - 備案區與每日行程間的 pointer／keyboard 拖曳排序
+- 每天以 `00:00`–`23:00` hourly timeline 顯示，拖入小時格會回寫 `@HH:00`
 - 拖曳後自動回寫標準 Markdown
 - 即時 Markdown、CSV、JSON 輸出
 - Markdown 中的開始時間、停留時間與衝突提示

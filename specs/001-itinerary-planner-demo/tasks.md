@@ -189,3 +189,17 @@ Phases 1–7 record the original form-based implementation. Phase 8 supersedes i
 - [X] T045 Replace obsolete component tests and Playwright flow with Markdown-first acceptance scenarios.
 - [X] T046 Update README and quickstart examples.
 - [X] T047 Run `npm test`, `npm run build`, and `npm run test:e2e`; mark this phase complete only after all pass.
+
+---
+
+## Phase 9: Hourly Day Timeline
+
+**Goal**: Render every day as a 24-hour timeline and let pointer drops assign whole-hour start times.
+
+- [X] T048 Update spec and plan with hourly timeline behavior.
+- [X] T049 Add reducer and component tests for explicit drop time, 24 slots, and unscheduled placement.
+- [X] T050 Extend `MOVE_PLACE` with an optional target start time while preserving existing move semantics.
+- [X] T051 Render an unscheduled drop area and 24 hourly droppable rows in each day column.
+- [X] T052 Update drag handling so slot drops write `@HH:00` into all derived outputs.
+- [X] T053 Update quickstart and Playwright coverage for a real drop into the 09:00 slot.
+- [X] T054 Run unit, build, Playwright, and CI gates.
