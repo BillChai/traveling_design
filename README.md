@@ -123,6 +123,21 @@ GitHub Actions 會對 push 及 pull request 執行相同 gates。Node 版本同�
 `@HH:MM`。地圖搜尋文字省略時使用名稱，停留時間省略時為 60 分鐘。文件只在
 完全有效時更新畫面；無效草稿會顯示行號並保留最後一次有效行程。
 
+## 依地名產生景點備案（Project-local Skill）
+
+`.agents/skills/travel-place-suggestions/SKILL.md` 提供一個可在 Codex 中使用的
+`travel-place-suggestions` skill。給出地名後，它會先用目前網路資料搜尋附近候選，優先列出
+官方觀光／政府／場館來源，讓使用者確認；確認後才輸出可直接貼到 `## 備案` 下方的 fenced
+Markdown block：
+
+```text
+$travel-place-suggestions 東京淺草；偏好歷史景點與散步
+```
+
+這個 skill 不會自動修改旅程 Markdown、localStorage 或 app，也不需要 Google API key。若
+地名不明確，會先請使用者補充國家／城市或搜尋範圍；未查證的營業時間、交通、距離與票價
+不會被寫入輸出。可參考 [格式 fixture](./docs/examples/travel-place-suggestions.fixture.md)。
+
 ## 架構與規格
 
 - `src/domain/`：完整 Markdown parser／serializer、CSV／JSON、時間衝突、Maps URL 等純函式
