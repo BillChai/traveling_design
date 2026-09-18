@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
+import { readFile } from 'node:fs/promises'
 
 const pointerDrag = async (page: Page, source: Locator, target: Locator) => {
   const sourceBox = await source.boundingBox()
@@ -73,4 +74,45 @@ test('moves a card with the keyboard alternative', async ({ page }) => {
 
   await expect(page.getByRole('region', { name: 'Day 1' }).getByRole('article', { name: 'A' })).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Markdown 行程' })).toHaveValue(/## Day 1[\s\S]*- A \| A \| 60/)
+})
+
+test('downloads a stable CSV with scheduled items before the backlog', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('textbox', { name: 'Markdown 行程' }).fill(`# 下載測試
+
+## 備案
+- 備案景點 | 備案景點 | 60
+
+## Day 1 | 2026-10-03
+- @09:00 早上景點 | 早上景點 | 60
+
+## Day 2 | 2026-10-04
+- @10:00 第二天景點 | 第二天景點 | 60`)
+
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: '下載 CSV 時間表' }).click()
+  const download = await downloadPromise
+  expect(download.suggestedFilename()).toBe('travel-itinerary.csv')
+
+  const downloadPath = await download.path()
+  if (!downloadPath) throw new Error('CSV download path is unavailable')
+  const content = await readFile(downloadPath, 'utf8')
+  expect(content).toContain('\uFEFFsection,date,order,startTime,endTime,name,mapQuery,durationMinutes,note')
+  expect(content.indexOf('早上景點')).toBeLessThan(content.indexOf('第二天景點'))
+  expect(content.indexOf('第二天景點')).toBeLessThan(content.indexOf('備案景點'))
+  expect(content).toContain('"backlog"')
+
+  await page.getByRole('textbox', { name: 'Markdown 行程' }).fill(`# 空行程
+
+## 備案
+
+## Day 1`)
+  const emptyDownloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: '下載 CSV 時間表' }).click()
+  const emptyDownload = await emptyDownloadPromise
+  const emptyPath = await emptyDownload.path()
+  if (!emptyPath) throw new Error('Empty CSV download path is unavailable')
+  expect(await readFile(emptyPath, 'utf8')).toBe(
+    '\uFEFFsection,date,order,startTime,endTime,name,mapQuery,durationMinutes,note',
+  )
 })
