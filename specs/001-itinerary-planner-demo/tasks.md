@@ -215,3 +215,13 @@ Phases 1–7 record the original form-based implementation. Phase 8 supersedes i
 **Goal**: Make scheduled cards visibly span the hourly slots represented by their stay duration.
 
 - [X] T056 Update spec and plan, add duration-height component coverage, and render scheduled cards with duration-scaled visual height.
+
+## Phase 12: CSV Itinerary Download
+
+**Goal**: Download a stable CSV itinerary with scheduled places first and the backlog appended last.
+
+- [X] T057 Update spec and plan with CSV download ordering, backlog marker, stable filename, and empty-trip behavior.
+- [X] T058 Add deterministic CSV ordering tests and empty-trip header coverage in `src/domain/markdown.test.ts`.
+- [X] T059 Implement scheduled-first CSV serialization and fixed browser download filename in `src/domain/markdown.ts` and `src/app/App.tsx`.
+- [X] T060 Add component and Playwright coverage for the download action, filename, content order, and empty-trip download.
+- [X] T061 Update README and quickstart, then run `npm test`, `npm run build`, and `npm run test:e2e`.

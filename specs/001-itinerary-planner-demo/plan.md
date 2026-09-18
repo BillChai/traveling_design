@@ -124,6 +124,7 @@ React；UI 元件只透過 typed props 與 reducer actions 變更狀態。測試
 - 使用者輸入的無效草稿與最後有效 `Trip` 分開保存於 component state。
 - pointer drag 或 focused-card Alt + arrow keyboard movement dispatch `MOVE_PLACE`，完成後才觸發 canonical rewrite。
 - `serializeTripCsv` 與 `serializeTripJson` 只讀相同 `Trip`，不維護第二份資料。
+- CSV 下載沿用 `serializeTripCsv` 的 canonical 內容；CSV serializer 先將日期容器的項目依日期、開始時間（無時間者最後）與 `order` 排序，再將 backlog 項目附在末尾並標示 `section=backlog`。UI 以固定檔名 `travel-itinerary.csv` 建立 browser download；空行程仍輸出 header。
 
 ### Persistence and recovery
 
@@ -157,7 +158,7 @@ React；UI 元件只透過 typed props 與 reducer actions 變更狀態。測試
 1. Unit tests：Markdown、日期、時間衝突、reducer、storage recovery、Maps URL chunking。
 2. Component tests：新增、匯入、移動替代控制、時間提示、刪除確認及空狀態。
 3. Browser smoke：匯入四站、安排兩天、重排、重新整理、驗證 route link。
-4. Quality gates：`npm test`、`npm run build`、`npm run test:e2e`。
+4. Quality gates：`npm test`、`npm run build`、`npm run test:e2e`；E2E 驗證 CSV 下載檔名與日期／backlog 順序。
 5. CI：pull request 與 main push 執行 unit tests、production build、Playwright Chromium。
 
 ## Post-Design Constitution Check

@@ -39,6 +39,7 @@ $speckit-converge
 - 每天以 `00:00`–`23:00` hourly timeline 顯示，拖入小時格會回寫 `@HH:00`
 - 拖曳後自動回寫標準 Markdown
 - 即時 Markdown、CSV、JSON 輸出
+- 下載固定檔名 `travel-itinerary.csv` 的時間表；已排定景點依日期／開始時間／順序排列，備案最後以 `backlog` 標示
 - Markdown 中的開始時間、停留時間與衝突提示
 - Google Maps Search／Directions URL，以及 optional 內嵌路線預覽
 - 瀏覽器 localStorage 保存

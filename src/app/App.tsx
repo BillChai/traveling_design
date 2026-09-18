@@ -14,6 +14,7 @@ import {
   serializeTripJson,
   serializeTripMarkdown,
 } from '../domain/markdown'
+import { downloadTextFile, TRIP_CSV_FILENAME } from '../domain/download'
 import { findScheduleWarnings } from '../domain/time'
 import type { ImportError, Placement } from '../domain/types'
 import { loadTrip, saveTrip, type LoadTripResult } from '../persistence/tripStorage'
@@ -54,6 +55,8 @@ export default function App() {
   const canonicalMarkdown = useMemo(() => serializeTripMarkdown(trip), [trip])
   const csv = useMemo(() => serializeTripCsv(trip), [trip])
   const json = useMemo(() => serializeTripJson(trip), [trip])
+
+  const handleDownloadCsv = () => downloadTextFile(csv, TRIP_CSV_FILENAME)
 
   const updateMarkdown = (value: string) => {
     setMarkdown(value)
@@ -202,6 +205,9 @@ export default function App() {
         <div>
           <p className="eyebrow">DERIVED OUTPUT</p>
           <h2 id="outputs-heading">同一份行程，三種格式</h2>
+          <button type="button" className="secondaryButton" onClick={handleDownloadCsv}>
+            下載 CSV 時間表
+          </button>
         </div>
         <div className={styles.outputGrid}>
           <article>

@@ -23,6 +23,7 @@
 - 每個日期欄以可捲動的 `00:00` 至 `23:00` hourly timeline 顯示；沒有開始時間的景點置於日期內的「未設定時間」。
 - 使用 pointer 將景點拖到 hourly slot 時，開始時間設為該小時的 `HH:00` 並回寫 Markdown。
 - Markdown textarea 上方 MUST 顯示非可編輯、低對比的格式範例，且範例不得成為旅程資料。
+- 使用者 MUST 能下載目前有效行程的 CSV；下載檔案先列出已排定日期的景點，再依日期、開始時間與 `order` 排序，最後附上全部備案並以 `backlog` 清楚標示。
 
 ## User Scenarios & Testing
 
@@ -129,6 +130,8 @@
 - **FR-022**: Hourly slot drop 完成後 MUST 同步更新 canonical Markdown、CSV、JSON 與 localStorage。
 - **FR-023**: Markdown 編輯區 MUST 在 textarea 上方顯示包含旅程、備案、日期與 `@HH:MM` 的輕量格式範例；範例 MUST 不可編輯且不得寫入任何輸出或 localStorage。
 - **FR-024**: 有開始時間的景點卡片 MUST 依停留分鐘數顯示視覺高度：60 分鐘至少佔一個小時格，180 分鐘應跨越三個小時格；此視覺高度不得改變排序或時間計算。
+- **FR-025**: 系統 MUST 提供下載目前有效行程的 CSV 功能；CSV MUST 先輸出日期欄位中的景點，依日期、開始時間（無時間者最後）及容器內 `order` 排序，再輸出全部備案，且備案的 `section` MUST 為 `backlog`。
+- **FR-026**: CSV 下載 MUST 使用固定檔名 `travel-itinerary.csv`，空行程也 MUST 產生包含 header 的有效檔案。
 
 ## Success Criteria
 
@@ -144,7 +147,7 @@
 - 景點搜尋、autocomplete、Maps JavaScript API 與自動路線最佳化。
 - 自動交通時間、營業時間、預約、預算、帳號、後端、同步與多人協作。
 - 自訂 Markdown dialect、保留非語意 whitespace 或任意註解位置。
-- CSV／JSON 檔案下載、雲端分享與外部匯入。
+- JSON 檔案下載、雲端分享與外部匯入。
 
 Optional Maps Embed route preview 由後續 `002-google-maps-route-preview` feature spec 定義；
 本規格的 keyless Search／Directions URL 仍是必要 fallback。

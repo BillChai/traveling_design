@@ -22,7 +22,7 @@ describe('Markdown-first 編輯', () => {
     expect(screen.getByLabelText('標準 Markdown 輸出')).toHaveTextContent('## Day 1 | 2026-10-03')
     expect(screen.getByLabelText('CSV 輸出')).toHaveTextContent('上野公園')
     expect(screen.getByLabelText('JSON 輸出')).toHaveTextContent('"startTime": "09:00"')
-    expect(screen.queryAllByRole('button')).toHaveLength(0)
+    expect(screen.getByRole('button', { name: '下載 CSV 時間表' })).toBeInTheDocument()
   })
 
   it('keeps the last valid board when the draft becomes invalid', () => {
