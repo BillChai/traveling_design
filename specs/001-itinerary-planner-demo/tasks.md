@@ -215,3 +215,12 @@ Phases 1–7 record the original form-based implementation. Phase 8 supersedes i
 **Goal**: Make scheduled cards visibly span the hourly slots represented by their stay duration.
 
 - [X] T056 Update spec and plan, add duration-height component coverage, and render scheduled cards with duration-scaled visual height.
+
+## Phase 13: Fixed Hourly Rows for Long Activities
+
+**Goal**: Keep hourly rows fixed while duration-scaled cards visually span later rows.
+
+- [X] T062 Update spec and plan with fixed-row and cross-row rendering behavior.
+- [X] T063 Fix hourly row CSS so long cards do not expand their starting row.
+- [X] T064 Add 140-minute component and Playwright coverage for rows 09:00–11:00.
+- [X] T065 Run `npm test`, `npm run build`, and `PLAYWRIGHT_PORT=5174 npm run test:e2e`.

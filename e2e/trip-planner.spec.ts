@@ -74,3 +74,35 @@ test('moves a card with the keyboard alternative', async ({ page }) => {
   await expect(page.getByRole('region', { name: 'Day 1' }).getByRole('article', { name: 'A' })).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Markdown 行程' })).toHaveValue(/## Day 1[\s\S]*- A \| A \| 60/)
 })
+
+test('keeps hourly rows fixed while a long activity spans later rows', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('textbox', { name: 'Markdown 行程' }).fill(`# 時間跨列
+
+## 備案
+
+## Day 1 | 2026-10-03
+- @09:00 東京車站 | 東京車站 | 140
+- @12:00 淺草寺 | 淺草寺 | 60`)
+
+  const timeline = page.getByRole('region', { name: 'Day 1' })
+  const card = timeline.getByRole('article', { name: '東京車站' })
+  const rows = timeline.locator('.hourSlot')
+  const row09 = rows.filter({ has: page.getByText('09:00', { exact: true }) })
+  const row10 = rows.filter({ has: page.getByText('10:00', { exact: true }) })
+  const row11 = rows.filter({ has: page.getByText('11:00', { exact: true }) })
+  const cardBox = await card.boundingBox()
+  const row09Box = await row09.boundingBox()
+  const row10Box = await row10.boundingBox()
+  const row11Box = await row11.boundingBox()
+
+  expect(cardBox).not.toBeNull()
+  expect(row09Box).not.toBeNull()
+  expect(row10Box).not.toBeNull()
+  expect(row11Box).not.toBeNull()
+  expect(row09Box?.height).toBe(76)
+  expect(row10Box?.height).toBe(76)
+  expect(row11Box?.height).toBe(76)
+  expect(cardBox!.y).toBeGreaterThanOrEqual(row09Box!.y)
+  expect(cardBox!.y + cardBox!.height).toBeGreaterThan(row11Box!.y)
+})

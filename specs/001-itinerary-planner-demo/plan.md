@@ -148,6 +148,7 @@ React；UI 元件只透過 typed props 與 reducer actions 變更狀態。測試
 - 整張卡片是 pointer drag handle；Alt + 左右方向鍵跨欄，Alt + 上下方向鍵同欄排序。
 - 日期 container 內含「未設定時間」drop area 與 24 個 hourly droppable rows；drop data 直接攜帶 `dayId` 與 `startTime`。
 - 有開始時間的卡片以 `max(一小時 row 高度, durationMinutes / 60 × row 高度)` 設定最小視覺高度，讓長活動跨越對應的小時格；備案與未設定時間卡片不套用此高度。
+- 有開始時間的卡片以 `max(一小時 row 高度, durationMinutes / 60 × row 高度)` 設定視覺高度，並在固定高度的 hourly row 上溢出覆蓋後續小時格；不得讓起始 row 因卡片高度而變高。備案與未設定時間卡片不套用此高度。
 - `MOVE_PLACE` 只在 hourly drop 明確提供時間時覆寫 `startTime`，一般跨欄移動仍保留既有時間，回到備案一律清除。
 - 不渲染新增、編輯、刪除、日期或移動按鈕；這些操作全部透過 Markdown 或拖曳完成。
 - Parser errors、schedule warnings 與 storage notice 使用可辨識文字／live region。
