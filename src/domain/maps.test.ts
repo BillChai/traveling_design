@@ -16,7 +16,7 @@ describe('buildGoogleMapsLinks', () => {
     expect(new URL(link.url).searchParams.get('query')).toBe('東京都 景點 1')
   })
 
-  it('builds one ordered directions link for up to five places', () => {
+  it('builds one ordered directions link for multiple places', () => {
     const [link] = buildGoogleMapsLinks(places(5))
     const url = new URL(link.url)
     expect(url.pathname).toContain('/maps/dir/')
@@ -28,25 +28,20 @@ describe('buildGoogleMapsLinks', () => {
     expect(url.searchParams.has('travelmode')).toBe(false)
   })
 
-  it('chunks longer routes with shared boundary places', () => {
+  it('keeps a long route in one ordered directions link', () => {
     const links = buildGoogleMapsLinks(places(12))
-    expect(links).toHaveLength(3)
-    expect(links.map((link) => link.placeIds)).toEqual([
-      ['place-1', 'place-2', 'place-3', 'place-4', 'place-5'],
-      ['place-5', 'place-6', 'place-7', 'place-8', 'place-9'],
-      ['place-9', 'place-10', 'place-11', 'place-12'],
-    ])
-    expect(links.every((link) => link.url.length <= 2048)).toBe(true)
+    expect(links).toHaveLength(1)
+    expect(links[0].placeIds).toEqual(places(12).map((place) => place.id))
   })
 
-  it('starts a new segment before an encoded URL exceeds 2048 characters', () => {
+  it('does not split a route when location queries are long', () => {
     const longPlaces = places(4).map((place, index) => ({
       ...place,
       locationQuery: `${index}-${'長'.repeat(80)}`,
     }))
     const links = buildGoogleMapsLinks(longPlaces)
-    expect(links.length).toBeGreaterThan(1)
-    expect(links.every((link) => link.url.length <= 2048)).toBe(true)
+    expect(links).toHaveLength(1)
+    expect(links[0].placeIds).toEqual(longPlaces.map((place) => place.id))
   })
 })
 
@@ -66,21 +61,18 @@ describe('buildGoogleMapsEmbedUrls', () => {
     expect(embed.placeIds).toEqual(['place-1'])
   })
 
-  it('builds ordered directions previews from the same route segments without a mode', () => {
+  it('builds one ordered directions preview without a mode', () => {
     const embeds = buildGoogleMapsEmbedUrls(places(7), 'test-key')
-    expect(embeds).toHaveLength(2)
-    expect(embeds.map((embed) => embed.placeIds)).toEqual([
-      ['place-1', 'place-2', 'place-3', 'place-4', 'place-5'],
-      ['place-5', 'place-6', 'place-7'],
-    ])
+    expect(embeds).toHaveLength(1)
+    expect(embeds[0].placeIds).toEqual(places(7).map((place) => place.id))
 
-    const firstUrl = new URL(embeds[0].url)
-    expect(firstUrl.pathname).toBe('/maps/embed/v1/directions')
-    expect(firstUrl.searchParams.get('origin')).toBe('東京都 景點 1')
-    expect(firstUrl.searchParams.get('destination')).toBe('東京都 景點 5')
-    expect(firstUrl.searchParams.get('waypoints')).toBe(
-      '東京都 景點 2|東京都 景點 3|東京都 景點 4',
+    const url = new URL(embeds[0].url)
+    expect(url.pathname).toBe('/maps/embed/v1/directions')
+    expect(url.searchParams.get('origin')).toBe('東京都 景點 1')
+    expect(url.searchParams.get('destination')).toBe('東京都 景點 7')
+    expect(url.searchParams.get('waypoints')).toBe(
+      '東京都 景點 2|東京都 景點 3|東京都 景點 4|東京都 景點 5|東京都 景點 6',
     )
-    expect(firstUrl.searchParams.has('mode')).toBe(false)
+    expect(url.searchParams.has('mode')).toBe(false)
   })
 })

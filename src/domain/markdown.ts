@@ -272,17 +272,35 @@ const exportItemsFor = (trip: Trip, section: string, date: string | null, dayId:
     }]
   })
 
-const allExportItems = (trip: Trip): ExportItem[] => [
-  ...exportItemsFor(trip, '備案', null, null),
-  ...trip.days.flatMap((day) => exportItemsFor(trip, day.label, day.date, day.id)),
-]
+const compareNullableText = (left: string | null, right: string | null): number => {
+  if (left === right) return 0
+  if (left === null) return 1
+  if (right === null) return -1
+  return left.localeCompare(right)
+}
+
+const csvExportItems = (trip: Trip): ExportItem[] => {
+  const scheduled = trip.days.flatMap((day, dayIndex) =>
+    exportItemsFor(trip, day.label, day.date, day.id).map((item) => ({ item, dayIndex })),
+  )
+
+  scheduled.sort((left, right) =>
+    compareNullableText(left.item.date, right.item.date)
+    || compareNullableText(left.item.startTime, right.item.startTime)
+    || left.item.order - right.item.order
+    || left.dayIndex - right.dayIndex,
+  )
+
+  const backlog = exportItemsFor(trip, 'backlog', null, null)
+  return [...scheduled.map(({ item }) => item), ...backlog]
+}
 
 const csvField = (value: string | number | null) =>
   `"${String(value ?? '').replaceAll('"', '""')}"`
 
 export const serializeTripCsv = (trip: Trip): string => {
   const header = 'section,date,order,startTime,endTime,name,mapQuery,durationMinutes,note'
-  const rows = allExportItems(trip).map((item) => [
+  const rows = csvExportItems(trip).map((item) => [
     item.section,
     item.date,
     item.order,

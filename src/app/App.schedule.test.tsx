@@ -1,8 +1,17 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
+import { downloadTextFile } from '../domain/download'
 import App from './App'
 
-afterEach(() => vi.unstubAllEnvs())
+vi.mock('../domain/download', () => ({
+  TRIP_CSV_FILENAME: 'travel-itinerary.csv',
+  downloadTextFile: vi.fn(),
+}))
+
+afterEach(() => {
+  vi.unstubAllEnvs()
+  vi.clearAllMocks()
+})
 
 describe('多日視覺編排', () => {
   it('shows a light Markdown format example above the editor', () => {
@@ -78,6 +87,17 @@ describe('多日視覺編排', () => {
     const card = screen.getByRole('article', { name: 'A' })
     expect(card).toHaveClass('timedPlaceCard')
     expect(card.style.getPropertyValue('--duration-height')).toBe('177.33333333333334px')
+  })
+
+  it('offers the current CSV through a stable download filename', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: '下載 CSV 時間表' }))
+
+    expect(downloadTextFile).toHaveBeenCalledWith(
+      expect.stringContaining('section,date,order,startTime,endTime,name,mapQuery,durationMinutes,note'),
+      'travel-itinerary.csv',
+    )
   })
 
   it('renders an ordered Google Maps preview when the Embed key is configured', () => {

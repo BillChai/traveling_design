@@ -110,18 +110,18 @@
 
 ## Phase 6: User Story 4 - 開啟地圖路線 (Priority: P2)
 
-**Goal**: Generate API-key-free Search or chunked Directions links in the exact visual order.
+**Goal**: Generate one API-key-free Search or Directions link per day in the exact visual order.
 
-**Independent Test**: Validate zero-, one-, five-, six-, and twelve-stop route sets including long encoded queries.
+**Independent Test**: Validate zero-, one-, multi-stop, and long-query route sets all produce one daily route.
 
 ### Tests for User Story 4
 
-- [X] T028 [P] [US4] Add Maps URL tests for zero/one/multi-stop behavior, no travel mode, five-stop chunks, shared boundaries, encoding, and 2,048-character limits in `src/domain/maps.test.ts`
+- [X] T028 [P] [US4] Add Maps URL tests for zero/one/multi-stop behavior, no travel mode, order, and long queries in `src/domain/maps.test.ts`
 
 ### Implementation for User Story 4
 
-- [X] T029 [US4] Implement deterministic Google Maps Search/Directions URL generation and safe chunking in `src/domain/maps.ts` (FR-018–FR-021)
-- [X] T030 [US4] Render per-day route buttons, segment labels, and unavailable reasons in `src/components/DayColumn.tsx` (FR-019–FR-021, FR-025)
+- [X] T029 [US4] Implement deterministic one-route-per-day Google Maps Search/Directions URL generation in `src/domain/maps.ts` (FR-018–FR-021)
+- [X] T030 [US4] Render per-day route buttons and unavailable reasons in `src/components/DayColumn.tsx` (FR-019–FR-021, FR-025)
 
 **Checkpoint**: User Story 4 opens correctly ordered routes without an API key or preset travel mode.
 
@@ -215,6 +215,16 @@ Phases 1–7 record the original form-based implementation. Phase 8 supersedes i
 **Goal**: Make scheduled cards visibly span the hourly slots represented by their stay duration.
 
 - [X] T056 Update spec and plan, add duration-height component coverage, and render scheduled cards with duration-scaled visual height.
+
+## Phase 12: CSV Itinerary Download
+
+**Goal**: Download a stable CSV itinerary with scheduled places first and the backlog appended last.
+
+- [X] T057 Update spec and plan with CSV download ordering, backlog marker, stable filename, and empty-trip behavior.
+- [X] T058 Add deterministic CSV ordering tests and empty-trip header coverage in `src/domain/markdown.test.ts`.
+- [X] T059 Implement scheduled-first CSV serialization and fixed browser download filename in `src/domain/markdown.ts` and `src/app/App.tsx`.
+- [X] T060 Add component and Playwright coverage for the download action, filename, content order, and empty-trip download.
+- [X] T061 Update README and quickstart, then run `npm test`, `npm run build`, and `npm run test:e2e`.
 
 ## Phase 13: Fixed Hourly Rows for Long Activities
 

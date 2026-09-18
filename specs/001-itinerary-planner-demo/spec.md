@@ -23,6 +23,7 @@
 - 每個日期欄以可捲動的 `00:00` 至 `23:00` hourly timeline 顯示；沒有開始時間的景點置於日期內的「未設定時間」。
 - 使用 pointer 將景點拖到 hourly slot 時，開始時間設為該小時的 `HH:00` 並回寫 Markdown。
 - Markdown textarea 上方 MUST 顯示非可編輯、低對比的格式範例，且範例不得成為旅程資料。
+- 使用者 MUST 能下載目前有效行程的 CSV；下載檔案先列出已排定日期的景點，再依日期、開始時間與 `order` 排序，最後附上全部備案並以 `backlog` 清楚標示。
 
 ## User Scenarios & Testing
 
@@ -118,7 +119,7 @@
 - **FR-011**: 系統 MUST 即時產生依容器及 `order` 排序的 Markdown、CSV、JSON。
 - **FR-012**: CSV MUST 正確引用特殊字元；JSON MUST 使用明確的 `backlog` 與 `days[].items` 結構。
 - **FR-013**: 一站 MUST 產生 Google Maps Search URL；多站 MUST 產生 Directions URL。
-- **FR-014**: Maps URL MUST 使用視覺順序、不指定交通方式，且依五站／2,048 字元限制分段。
+- **FR-014**: 每個日期 MUST 只產生一條 Maps URL；URL MUST 使用視覺順序且不指定交通方式，不得自動依站數或 URL 長度分段。
 - **FR-015**: 每次有效狀態變更 MUST 保存，並在重新整理後還原相同內容及順序。
 - **FR-016**: 損毀或不支援的儲存內容 MUST 備份原始值並載入安全 starter document。
 - **FR-017**: UI MUST 使用繁體中文，錯誤及警告不得只依賴顏色。
@@ -129,6 +130,8 @@
 - **FR-022**: Hourly slot drop 完成後 MUST 同步更新 canonical Markdown、CSV、JSON 與 localStorage。
 - **FR-023**: Markdown 編輯區 MUST 在 textarea 上方顯示包含旅程、備案、日期與 `@HH:MM` 的輕量格式範例；範例 MUST 不可編輯且不得寫入任何輸出或 localStorage。
 - **FR-024**: 有開始時間的景點卡片 MUST 依停留分鐘數顯示視覺高度：60 分鐘至少佔一個小時格，180 分鐘應跨越三個小時格；此視覺高度不得改變排序或時間計算。
+- **FR-025**: 系統 MUST 提供下載目前有效行程的 CSV 功能；CSV MUST 先輸出日期欄位中的景點，依日期、開始時間（無時間者最後）及容器內 `order` 排序，再輸出全部備案，且備案的 `section` MUST 為 `backlog`。
+- **FR-026**: CSV 下載 MUST 使用固定檔名 `travel-itinerary.csv`，空行程也 MUST 產生包含 header 的有效檔案。
 - **FR-027**: Hourly timeline 的每個小時列 MUST 維持固定高度；長時間卡片 MUST 覆蓋後續小時列，而不得把開始時間所在的列撐高或將後續列往下推。
 
 ## Success Criteria
@@ -145,7 +148,7 @@
 - 景點搜尋、autocomplete、Maps JavaScript API 與自動路線最佳化。
 - 自動交通時間、營業時間、預約、預算、帳號、後端、同步與多人協作。
 - 自訂 Markdown dialect、保留非語意 whitespace 或任意註解位置。
-- CSV／JSON 檔案下載、雲端分享與外部匯入。
+- JSON 檔案下載、雲端分享與外部匯入。
 
 Optional Maps Embed route preview 由後續 `002-google-maps-route-preview` feature spec 定義；
 本規格的 keyless Search／Directions URL 仍是必要 fallback。

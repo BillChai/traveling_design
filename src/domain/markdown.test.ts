@@ -114,7 +114,7 @@ describe('Markdown-first trip document', () => {
     trip.places[0].notes = '賞櫻, "早點到"'
 
     const csv = serializeTripCsv(trip)
-    expect(csv).toContain('"備案","","0","","","上野公園"')
+    expect(csv).toContain('"backlog","","0","","","上野公園"')
     expect(csv).toContain('"賞櫻, ""早點到"""')
     expect(csv.indexOf('淺草寺')).toBeLessThan(csv.indexOf('東京晴空塔'))
 
@@ -126,5 +126,46 @@ describe('Markdown-first trip document', () => {
       endTime: '10:30',
       name: '淺草寺',
     })
+  })
+
+  it('serializes scheduled days by date, start time, and order before backlog', () => {
+    const trip = parseTripMarkdown(`# 旅程
+
+## 備案
+- 備案 A | 備案 A | 60
+- 備案 B | 備案 B | 60
+
+## Day 2 | 2026-10-04
+- @09:00 Day 2 | Day 2 | 60
+
+## Day 1 | 2026-10-03
+- @11:00 Late | Late | 60
+- @09:00 Early | Early | 60
+- No time | No time | 60`).trip!
+
+    const rows = serializeTripCsv(trip).split('\n')
+    expect(rows.slice(1).map((row) => row.split(',')[0])).toEqual([
+      '"Day 1"',
+      '"Day 1"',
+      '"Day 1"',
+      '"Day 2"',
+      '"backlog"',
+      '"backlog"',
+    ])
+    expect(rows[1]).toContain('"09:00"')
+    expect(rows[2]).toContain('"11:00"')
+    expect(rows[3]).toContain('""')
+    expect(rows[4]).toContain('"09:00"')
+  })
+
+  it('downloads an empty trip as a header-only CSV representation', () => {
+    const trip = parseTripMarkdown(`# 空行程
+
+## 備案
+
+## Day 1`).trip!
+    expect(serializeTripCsv(trip)).toBe(
+      'section,date,order,startTime,endTime,name,mapQuery,durationMinutes,note',
+    )
   })
 })
