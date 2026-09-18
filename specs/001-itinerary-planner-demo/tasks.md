@@ -209,3 +209,9 @@ Phases 1–7 record the original form-based implementation. Phase 8 supersedes i
 **Goal**: Show a light, non-editable Markdown example above the editor without changing trip data.
 
 - [X] T055 Update spec and plan, render the syntax example, and add component coverage for the hint.
+
+## Phase 11: Duration-scaled Timeline Cards
+
+**Goal**: Make scheduled cards visibly span the hourly slots represented by their stay duration.
+
+- [X] T056 Update spec and plan, add duration-height component coverage, and render scheduled cards with duration-scaled visual height.

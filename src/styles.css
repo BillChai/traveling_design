@@ -196,6 +196,7 @@ textarea { resize: vertical; }
 .hourContent { display: grid; align-content: start; gap: 8px; min-width: 0; padding: 7px; }
 
 .placeCard { padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); box-shadow: 0 7px 20px rgb(42 55 51 / 7%); cursor: grab; touch-action: none; }
+.timedPlaceCard { position: relative; z-index: 1; min-height: var(--duration-height); }
 .placeCard:active { cursor: grabbing; }
 .cardHeading { display: grid; grid-template-columns: auto 1fr; gap: 9px; align-items: start; }
 .cardHeading h3 { margin: 1px 0 2px; font-size: 1rem; }

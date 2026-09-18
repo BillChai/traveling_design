@@ -62,6 +62,24 @@ describe('多日視覺編排', () => {
     )
   })
 
+  it('sizes scheduled cards according to their duration', () => {
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Markdown 行程'), {
+      target: {
+        value: `# 時間軸
+
+## 備案
+
+## Day 1 | 2026-10-03
+- @09:00 A | A | 180`,
+      },
+    })
+
+    const card = screen.getByRole('article', { name: 'A' })
+    expect(card).toHaveClass('timedPlaceCard')
+    expect(card.style.getPropertyValue('--duration-height')).toBe('228px')
+  })
+
   it('renders an ordered Google Maps preview when the Embed key is configured', () => {
     vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_API_KEY', 'test-key')
     render(<App />)

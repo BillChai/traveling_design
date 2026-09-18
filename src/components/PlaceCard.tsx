@@ -1,7 +1,10 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import type { CSSProperties } from 'react'
 import { calculateEndTime } from '../domain/time'
 import type { Place, Placement, ScheduleWarning } from '../domain/types'
+
+const HOUR_SLOT_HEIGHT = 76
 
 interface PlaceCardProps {
   place: Place
@@ -16,17 +19,21 @@ export function PlaceCard({ place, placement, warnings, onKeyboardMove }: PlaceC
     data: { dayId: placement.dayId, startTime: placement.startTime },
   })
   const endTime = calculateEndTime(placement.startTime, placement.durationMinutes)
-  const style = {
+  const durationHeight = placement.dayId !== null && placement.startTime
+    ? `${Math.max(HOUR_SLOT_HEIGHT, (placement.durationMinutes / 60) * HOUR_SLOT_HEIGHT)}px`
+    : undefined
+  const style: CSSProperties = {
     transform: CSS.Transform.toString(sortable.transform),
     transition: sortable.transition,
     opacity: sortable.isDragging ? 0.55 : 1,
+    ...(durationHeight ? { '--duration-height': durationHeight } as CSSProperties : {}),
   }
 
   return (
     <article
       ref={sortable.setNodeRef}
       style={style}
-      className="placeCard"
+      className={`placeCard ${durationHeight ? 'timedPlaceCard' : ''}`}
       aria-label={place.name}
       {...sortable.attributes}
       {...sortable.listeners}
