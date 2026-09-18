@@ -1,5 +1,5 @@
 import type { RoutePlace } from './types'
-import { buildGoogleMapsLinks } from './maps'
+import { buildGoogleMapsEmbedUrls, buildGoogleMapsLinks } from './maps'
 
 const places = (count: number): RoutePlace[] =>
   Array.from({ length: count }, (_, index) => ({
@@ -47,5 +47,40 @@ describe('buildGoogleMapsLinks', () => {
     const links = buildGoogleMapsLinks(longPlaces)
     expect(links.length).toBeGreaterThan(1)
     expect(links.every((link) => link.url.length <= 2048)).toBe(true)
+  })
+})
+
+describe('buildGoogleMapsEmbedUrls', () => {
+  it('does not build an embed request without an API key or places', () => {
+    expect(buildGoogleMapsEmbedUrls(places(2), '')).toEqual([])
+    expect(buildGoogleMapsEmbedUrls([], 'test-key')).toEqual([])
+  })
+
+  it('builds a place preview for one place', () => {
+    const [embed] = buildGoogleMapsEmbedUrls(places(1), 'test-key')
+    const url = new URL(embed.url)
+
+    expect(url.pathname).toBe('/maps/embed/v1/place')
+    expect(url.searchParams.get('key')).toBe('test-key')
+    expect(url.searchParams.get('q')).toBe('東京都 景點 1')
+    expect(embed.placeIds).toEqual(['place-1'])
+  })
+
+  it('builds ordered directions previews from the same route segments without a mode', () => {
+    const embeds = buildGoogleMapsEmbedUrls(places(7), 'test-key')
+    expect(embeds).toHaveLength(2)
+    expect(embeds.map((embed) => embed.placeIds)).toEqual([
+      ['place-1', 'place-2', 'place-3', 'place-4', 'place-5'],
+      ['place-5', 'place-6', 'place-7'],
+    ])
+
+    const firstUrl = new URL(embeds[0].url)
+    expect(firstUrl.pathname).toBe('/maps/embed/v1/directions')
+    expect(firstUrl.searchParams.get('origin')).toBe('東京都 景點 1')
+    expect(firstUrl.searchParams.get('destination')).toBe('東京都 景點 5')
+    expect(firstUrl.searchParams.get('waypoints')).toBe(
+      '東京都 景點 2|東京都 景點 3|東京都 景點 4',
+    )
+    expect(firstUrl.searchParams.has('mode')).toBe(false)
   })
 })

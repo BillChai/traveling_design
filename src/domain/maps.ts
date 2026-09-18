@@ -1,6 +1,7 @@
-import type { MapLink, RoutePlace } from './types'
+import type { MapEmbed, MapLink, RoutePlace } from './types'
 
 const BASE_URL = 'https://www.google.com/maps'
+const EMBED_BASE_URL = `${BASE_URL}/embed/v1`
 const MAX_PLACES_PER_SEGMENT = 5
 const MAX_URL_LENGTH = 2048
 
@@ -58,4 +59,44 @@ export const buildGoogleMapsLinks = (places: RoutePlace[]): MapLink[] => {
   }
 
   return links
+}
+
+export const buildGoogleMapsEmbedUrls = (
+  places: RoutePlace[],
+  apiKey: string,
+): MapEmbed[] => {
+  const key = apiKey.trim()
+  if (!key || places.length === 0) return []
+
+  const placesById = new Map(places.map((place) => [place.id, place]))
+  return buildGoogleMapsLinks(places).flatMap((link, index) => {
+    const segment = link.placeIds.flatMap((id) => {
+      const place = placesById.get(id)
+      return place ? [place] : []
+    })
+    if (segment.length === 0) return []
+
+    if (segment.length === 1) {
+      const params = new URLSearchParams({ key, q: queryFor(segment[0]) })
+      return [{
+        label: `Google Maps 地點預覽：${segment[0].name}`,
+        url: `${EMBED_BASE_URL}/place?${params.toString()}`,
+        placeIds: link.placeIds,
+      }]
+    }
+
+    const params = new URLSearchParams({
+      key,
+      origin: queryFor(segment[0]),
+      destination: queryFor(segment.at(-1)!),
+    })
+    const waypoints = segment.slice(1, -1).map(queryFor)
+    if (waypoints.length) params.set('waypoints', waypoints.join('|'))
+
+    return [{
+      label: `Google Maps 路線預覽${index > 0 ? `（第 ${index + 1} 段）` : ''}`,
+      url: `${EMBED_BASE_URL}/directions?${params.toString()}`,
+      placeIds: link.placeIds,
+    }]
+  })
 }

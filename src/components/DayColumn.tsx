@@ -1,93 +1,164 @@
+import { useEffect, useRef, type ReactNode } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { buildGoogleMapsLinks } from '../domain/maps'
-import type { DayPlan, MapLink, Place, Placement, ScheduleWarning } from '../domain/types'
+import { buildGoogleMapsEmbedUrls, buildGoogleMapsLinks } from '../domain/maps'
+import type { DayPlan, MapEmbed, MapLink, Place, Placement, ScheduleWarning } from '../domain/types'
 import { PlaceCard } from './PlaceCard'
+
+const HOURS = Array.from({ length: 24 }, (_, hour) => `${hour.toString().padStart(2, '0')}:00`)
 
 interface DayColumnProps {
   day: DayPlan | null
   placements: Placement[]
   placesById: Map<string, Place>
-  days: DayPlan[]
   warnings: Record<string, ScheduleWarning[]>
-  onMove: (placementId: string, targetDayId: string | null, targetIndex: number) => void
-  onUpdatePlace: (placeId: string, changes: Partial<Omit<Place, 'id'>>) => void
-  onUpdateSchedule: (placementId: string, startTime: string | null, durationMinutes: number) => void
-  onDeletePlace: (placeId: string, isScheduled: boolean) => void
-  onDeleteDay?: () => void
-  canDeleteDay?: boolean
+  mapsEmbedApiKey?: string
+  onKeyboardMove: (
+    placement: Placement,
+    direction: 'left' | 'right' | 'up' | 'down',
+  ) => void
+}
+
+interface DropAreaProps {
+  id: string
+  dayId: string
+  startTime: string | null
+  children: ReactNode
+}
+
+function UnscheduledArea({ id, dayId, startTime, children }: DropAreaProps) {
+  const droppable = useDroppable({ id, data: { dayId, startTime } })
+  return (
+    <section
+      ref={droppable.setNodeRef}
+      className={`unscheduledArea ${droppable.isOver ? 'isOver' : ''}`}
+      aria-label="未設定時間"
+    >
+      <p>未設定時間</p>
+      <div className="unscheduledCards">{children}</div>
+    </section>
+  )
+}
+
+function HourSlot({ id, dayId, startTime, children }: DropAreaProps) {
+  const droppable = useDroppable({ id, data: { dayId, startTime } })
+  return (
+    <div
+      ref={droppable.setNodeRef}
+      className={`hourSlot ${droppable.isOver ? 'isOver' : ''}`}
+      role="group"
+      aria-label={startTime ?? undefined}
+    >
+      <time dateTime={startTime ?? undefined}>{startTime}</time>
+      <div className="hourContent">{children}</div>
+    </div>
+  )
 }
 
 export function DayColumn({
   day,
   placements,
   placesById,
-  days,
   warnings,
-  onMove,
-  onUpdatePlace,
-  onUpdateSchedule,
-  onDeletePlace,
-  onDeleteDay,
-  canDeleteDay,
+  mapsEmbedApiKey = '',
+  onKeyboardMove,
 }: DayColumnProps) {
   const containerId = `container:${day?.id ?? 'backlog'}`
-  const droppable = useDroppable({ id: containerId, data: { dayId: day?.id ?? null } })
+  const droppable = useDroppable({
+    id: containerId,
+    data: { dayId: day?.id ?? null, startTime: day ? null : undefined },
+  })
+  const timelineRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (day && timelineRef.current) timelineRef.current.scrollTop = 7 * 76
+  }, [day?.id])
+
   const routePlaces = placements.flatMap((placement) => {
     const place = placesById.get(placement.placeId)
     return place ? [{ id: place.id, name: place.name, locationQuery: place.locationQuery }] : []
   })
   const links: MapLink[] = day ? buildGoogleMapsLinks(routePlaces) : []
+  const embeds: MapEmbed[] = day
+    ? buildGoogleMapsEmbedUrls(routePlaces, mapsEmbedApiKey)
+    : []
+  const untimed = day ? placements.filter((placement) => !placement.startTime) : placements
+
+  const cards = (items: Placement[]) => items.map((placement) => {
+    const place = placesById.get(placement.placeId)
+    if (!place) return null
+    return (
+      <PlaceCard
+        key={placement.id}
+        place={place}
+        placement={placement}
+        warnings={warnings[placement.id] ?? []}
+        onKeyboardMove={(direction) => onKeyboardMove(placement, direction)}
+      />
+    )
+  })
 
   return (
-    <section ref={droppable.setNodeRef} className={`dayColumn ${droppable.isOver ? 'isOver' : ''}`} aria-labelledby={`${containerId}-heading`}>
-      <div className="columnHeading">
-        <div>
-          <p className="columnKicker">{day ? 'ITINERARY' : 'IDEAS'}</p>
-          <h2 id={`${containerId}-heading`}>{day?.label ?? '備案區'}</h2>
-          <p>{day?.date ?? (day ? '尚未設定日期' : '還沒決定哪一天也沒關係')}</p>
-        </div>
-        {day && (
-          <button type="button" className="textButton dangerText" disabled={!canDeleteDay} onClick={onDeleteDay}>
-            刪除這天
-          </button>
-        )}
-      </div>
+    <section
+      ref={droppable.setNodeRef}
+      className={`dayColumn ${droppable.isOver ? 'isOver' : ''}`}
+      aria-labelledby={`${containerId}-heading`}
+    >
+      <header className="columnHeading">
+        <p className="columnKicker">{day ? 'TIMELINE' : 'IDEAS'}</p>
+        <h2 id={`${containerId}-heading`}>{day?.label ?? '備案'}</h2>
+        <p>{day?.date ?? (day ? '未指定日期' : '尚未安排')}</p>
+      </header>
 
-      {day && (
-        <div className="routeLinks">
-          {links.length === 0 && <p>加入景點後即可產生 Google Maps 連結。</p>}
-          {links.map((link) => (
-            <a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label} ↗</a>
-          ))}
-        </div>
+      {day && links.length > 0 && (
+        <>
+          {embeds.length > 0 && (
+            <div className="mapPreviews">
+              {embeds.map((embed) => (
+                <iframe
+                  key={embed.url}
+                  title={`${day.label} ${embed.label}`}
+                  src={embed.url}
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
+                />
+              ))}
+            </div>
+          )}
+          <div className="routeLinks">
+            {embeds.length === 0 && (
+              <p>設定 <code>VITE_GOOGLE_MAPS_EMBED_API_KEY</code> 可在頁面內預覽路線。</p>
+            )}
+            {links.map((link) => (
+              <a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label} ↗</a>
+            ))}
+          </div>
+        </>
       )}
 
       <SortableContext items={placements.map((item) => item.id)} strategy={verticalListSortingStrategy}>
-        <div className="cardList">
-          {placements.length === 0 && (
-            <p className="emptyState">{day ? '從備案區移入景點，開始安排這一天。' : '先從上方新增或匯入想去的景點。'}</p>
-          )}
-          {placements.map((placement, index) => {
-            const place = placesById.get(placement.placeId)
-            if (!place) return null
-            return (
-              <PlaceCard
-                key={placement.id}
-                place={place}
-                placement={placement}
-                days={days}
-                index={index}
-                total={placements.length}
-                warnings={warnings[placement.id] ?? []}
-                onMove={(targetDayId, targetIndex) => onMove(placement.id, targetDayId, targetIndex)}
-                onUpdatePlace={(changes) => onUpdatePlace(place.id, changes)}
-                onUpdateSchedule={(startTime, durationMinutes) => onUpdateSchedule(placement.id, startTime, durationMinutes)}
-                onDelete={() => onDeletePlace(place.id, placement.dayId !== null)}
-              />
-            )
-          })}
-        </div>
+        {!day && (
+          <div className="cardList">
+            {placements.length === 0 && <p className="emptyState">在 Markdown 加入景點。</p>}
+            {cards(placements)}
+          </div>
+        )}
+
+        {day && (
+          <>
+            <UnscheduledArea id={`unscheduled:${day.id}`} dayId={day.id} startTime={null}>
+              {untimed.length === 0 ? <span>拖到這裡可清除時間</span> : cards(untimed)}
+            </UnscheduledArea>
+            <div ref={timelineRef} className="hourlyTimeline" aria-label={`${day.label} 24 小時時間軸`}>
+              {HOURS.map((time) => (
+                <HourSlot key={time} id={`hour:${day.id}:${time}`} dayId={day.id} startTime={time}>
+                  {cards(placements.filter((placement) => placement.startTime?.startsWith(time.slice(0, 2))))}
+                </HourSlot>
+              ))}
+            </div>
+          </>
+        )}
       </SortableContext>
     </section>
   )

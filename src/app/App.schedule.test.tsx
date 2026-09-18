@@ -1,60 +1,128 @@
-import { render, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, vi } from 'vitest'
 import App from './App'
 
-const addPlace = async (user: ReturnType<typeof userEvent.setup>, name: string) => {
-  const input = screen.getByLabelText(/景點名稱/)
-  await user.type(input, name)
-  await user.click(screen.getByRole('button', { name: '加入備案' }))
-}
+afterEach(() => vi.unstubAllEnvs())
 
-const moveTo = async (
-  user: ReturnType<typeof userEvent.setup>,
-  name: string,
-  destination: string,
-) => {
-  const card = screen.getByRole('article', { name })
-  const select = within(card).getByLabelText('移動到')
-  await user.selectOptions(select, within(select).getByRole('option', { name: destination }))
-  await user.click(within(card).getByRole('button', { name: '移動' }))
-}
-
-describe('多日行程編排', () => {
-  it('moves, reorders, and returns places with explicit controls', async () => {
-    const user = userEvent.setup()
+describe('多日視覺編排', () => {
+  it('shows a light Markdown format example above the editor', () => {
     render(<App />)
-    await addPlace(user, 'A')
-    await addPlace(user, 'B')
-    await user.click(screen.getByRole('button', { name: '新增一天' }))
 
-    await moveTo(user, 'A', 'Day 1')
-    await moveTo(user, 'B', 'Day 1')
-    const cardA = screen.getByRole('article', { name: 'A' })
-    await user.click(within(cardA).getByRole('button', { name: 'A 下移' }))
-
-    const dayOne = screen.getByRole('heading', { name: 'Day 1' }).closest('section')!
-    expect(within(dayOne).getAllByRole('article').map((node) => node.getAttribute('aria-label'))).toEqual(['B', 'A'])
-
-    await moveTo(user, 'A', '備案區')
-    const backlog = screen.getByRole('heading', { name: '備案區' }).closest('section')!
-    expect(within(backlog).getByRole('article', { name: 'A' })).toBeInTheDocument()
+    expect(screen.getByText('格式範例')).toBeInTheDocument()
+    expect(screen.getByLabelText('Markdown 格式範例')).toHaveTextContent('@09:00')
   })
 
-  it('protects the last day and returns places when deleting another day', async () => {
-    const user = userEvent.setup()
+  it('creates backlog and day columns only from Markdown headings', () => {
     render(<App />)
-    const initialDelete = screen.getByRole('button', { name: '刪除這天' })
-    expect(initialDelete).toBeDisabled()
+    fireEvent.change(screen.getByLabelText('Markdown 行程'), {
+      target: {
+        value: `# 京都
 
-    await addPlace(user, 'A')
-    await moveTo(user, 'A', 'Day 1')
-    await user.click(screen.getByRole('button', { name: '新增一天' }))
-    const dayOne = screen.getByRole('heading', { name: 'Day 1' }).closest('section')!
-    await user.click(within(dayOne).getByRole('button', { name: '刪除這天' }))
+## 備案
+- A | A | 60
 
-    expect(screen.queryByRole('heading', { name: 'Day 2' })).not.toBeInTheDocument()
-    const backlog = screen.getByRole('heading', { name: '備案區' }).closest('section')!
+## Day 1 | 2026-10-03
+- B | B | 30
+
+## Day 2 | 2026-10-04`,
+      },
+    })
+
+    const backlog = screen.getByRole('region', { name: '備案' })
+    const dayOne = screen.getByRole('region', { name: 'Day 1' })
+    const dayTwo = screen.getByRole('region', { name: 'Day 2' })
     expect(within(backlog).getByRole('article', { name: 'A' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '刪除這天' })).toBeDisabled()
+    expect(within(dayOne).getByRole('article', { name: 'B' })).toBeInTheDocument()
+    expect(within(dayTwo).getAllByRole('group', { name: /^\d{2}:00$/ })).toHaveLength(24)
+    expect(within(dayTwo).getByText('拖到這裡可清除時間')).toBeInTheDocument()
+  })
+
+  it('renders 24 hourly slots and keeps untimed day items separate', () => {
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Markdown 行程'), {
+      target: {
+        value: `# 時間軸
+
+## 備案
+
+## Day 1 | 2026-10-03
+- @09:30 A | A | 60
+- B | B | 30`,
+      },
+    })
+
+    const dayOne = screen.getByRole('region', { name: 'Day 1' })
+    const hourlySlots = within(dayOne).getAllByRole('group', { name: /^\d{2}:00$/ })
+    expect(hourlySlots).toHaveLength(24)
+    expect(within(dayOne).getByRole('group', { name: '09:00' })).toContainElement(
+      screen.getByRole('article', { name: 'A' }),
+    )
+    expect(within(dayOne).getByRole('region', { name: '未設定時間' })).toContainElement(
+      screen.getByRole('article', { name: 'B' }),
+    )
+  })
+
+  it('sizes scheduled cards according to their duration', () => {
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Markdown 行程'), {
+      target: {
+        value: `# 時間軸
+
+## 備案
+
+## Day 1 | 2026-10-03
+- @09:00 A | A | 180`,
+      },
+    })
+
+    const card = screen.getByRole('article', { name: 'A' })
+    expect(card).toHaveClass('timedPlaceCard')
+    expect(card.style.getPropertyValue('--duration-height')).toBe('228px')
+  })
+
+  it('renders an ordered Google Maps preview when the Embed key is configured', () => {
+    vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_API_KEY', 'test-key')
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Markdown 行程'), {
+      target: {
+        value: `# 路線預覽
+
+## 備案
+
+## Day 1
+- @09:00 A | 東京站 | 60
+- @11:00 B | 淺草寺 | 60`,
+      },
+    })
+
+    const preview = screen.getByTitle('Day 1 Google Maps 路線預覽')
+    const url = new URL(preview.getAttribute('src') ?? '')
+    expect(url.pathname).toBe('/maps/embed/v1/directions')
+    expect(url.searchParams.get('origin')).toBe('東京站')
+    expect(url.searchParams.get('destination')).toBe('淺草寺')
+    expect(url.searchParams.has('mode')).toBe(false)
+    expect(preview).toHaveAttribute('loading', 'lazy')
+    expect(preview).toHaveAttribute('allowfullscreen')
+    expect(preview).toHaveAttribute('referrerpolicy', 'strict-origin-when-cross-origin')
+  })
+
+  it('keeps the route link and shows setup guidance when the Embed key is absent', () => {
+    vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_API_KEY', '')
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Markdown 行程'), {
+      target: {
+        value: `# 路線預覽
+
+## 備案
+
+## Day 1
+- A | 東京站 | 60
+- B | 淺草寺 | 60`,
+      },
+    })
+
+    expect(screen.queryByTitle(/Google Maps 路線預覽/)).not.toBeInTheDocument()
+    expect(screen.getByText(/VITE_GOOGLE_MAPS_EMBED_API_KEY/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /開啟 Google Maps 路線/ })).toBeInTheDocument()
   })
 })

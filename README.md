@@ -1,6 +1,8 @@
 # Traveling Design
 
-一個 local-first 的旅遊行程編排 demo。使用者可以建立景點備案、安排多日行程、設定時間，並依景點順序開啟 Google Maps 路線。
+一個 local-first、Markdown-first 的旅遊行程編排 demo。使用者直接用 Markdown
+建立備案與日期，再以拖曳調整配置及順序；Markdown、CSV、JSON 與 Google Maps
+路線都由同一份有效行程即時產生。
 
 本專案使用 [GitHub Spec Kit](https://github.com/github/spec-kit) 進行 Spec-Driven Development。需求、技術設計與工作拆分分別維護在 `spec.md`、`plan.md` 與 `tasks.md`。
 
@@ -32,12 +34,15 @@ $speckit-converge
 ## MVP 邊界
 
 - 單一、多日旅程
-- UI 單筆新增與 Markdown 批次匯入
-- 備案區與每日行程間的拖曳排序
-- 手動開始時間、停留時間與衝突提示
-- Google Maps Search／Directions URL
+- 單一 Markdown 編輯器建立旅程、日期、時間及景點
+- 備案區與每日行程間的 pointer／keyboard 拖曳排序
+- 每天以 `00:00`–`23:00` hourly timeline 顯示，拖入小時格會回寫 `@HH:00`
+- 拖曳後自動回寫標準 Markdown
+- 即時 Markdown、CSV、JSON 輸出
+- Markdown 中的開始時間、停留時間與衝突提示
+- Google Maps Search／Directions URL，以及 optional 內嵌路線預覽
 - 瀏覽器 localStorage 保存
-- 無後端、無登入、無 Google API key、無內嵌地圖
+- 無後端、無登入、無付費 Google Maps API
 
 ## 本機啟動
 
@@ -67,6 +72,26 @@ Vite 預設會顯示 `http://localhost:5173`。首次執行瀏覽器測試前，
 npx playwright install chromium
 ```
 
+### Google Maps 路線預覽（選用）
+
+普通 Search／Directions 連結不需要 API key。若要在頁面內直接看到互動路線，請啟用
+[Maps Embed API](https://developers.google.com/maps/documentation/embed/get-started)，再建立：
+
+```bash
+cp .env.example .env.local
+```
+
+並在 `.env.local` 設定：
+
+```dotenv
+VITE_GOOGLE_MAPS_EMBED_API_KEY=你的_browser_key
+```
+
+修改環境變數後須重新啟動 Vite。Maps Embed API 的 Embed SKU 無使用費，但 Google
+仍要求 Cloud API key 與 billing account。此 key 會出現在瀏覽器 URL 中，因此應建立獨立
+key，限制為 Maps Embed API，並設定 localhost／正式網域的 website referrer restriction；
+真實 `.env.local` 已被 `.gitignore` 排除，不得提交。
+
 ## 驗證
 
 ```bash
@@ -80,25 +105,34 @@ GitHub Actions 會對 push 及 pull request 執行相同 gates。Node 版本同�
 
 ## Markdown 格式
 
-每行一個景點，允許一般文字或 Markdown list marker：
+使用 heading 建立備案與日期，每行一個景點：
 
 ```md
-- 淺草寺 | 東京都台東区浅草2-3-1 | 90 | 從雷門進入
-- 上野公園
+# 東京旅行
+
+## 備案
+
+- 上野公園 | 上野公園 | 60 | 賞櫻
+
+## Day 1 | 2026-10-03
+
+- @09:00 淺草寺 | 東京都台東区浅草2-3-1 | 90 | 從雷門進入
 ```
 
-欄位依序為 `名稱 | 地圖搜尋文字 | 停留分鐘 | 備註`。地圖搜尋文字省略時使用名稱，
-停留時間省略時為 60 分鐘；無效行會顯示行號，其他有效行仍會匯入。
+景點欄位依序為 `名稱 | 地圖搜尋文字 | 停留分鐘 | 備註`，排定景點可在名稱前加
+`@HH:MM`。地圖搜尋文字省略時使用名稱，停留時間省略時為 60 分鐘。文件只在
+完全有效時更新畫面；無效草稿會顯示行號並保留最後一次有效行程。
 
 ## 架構與規格
 
-- `src/domain/`：Markdown、日期、時間衝突、Maps URL 等純函式
+- `src/domain/`：完整 Markdown parser／serializer、CSV／JSON、時間衝突、Maps URL 等純函式
 - `src/app/tripReducer.ts`：維持 Place／Placement invariant 的狀態轉換
 - `src/persistence/`：versioned localStorage 與損毀資料 recovery
-- `src/components/`：表單、可排序景點卡與每日欄位
+- `src/components/`：display-only 可排序景點卡與每日欄位
 - `specs/001-itinerary-planner-demo/spec.md`：產品行為與驗收條件
 - `specs/001-itinerary-planner-demo/plan.md`：技術設計
 - `specs/001-itinerary-planner-demo/tasks.md`：實作順序與完成紀錄
 - `specs/001-itinerary-planner-demo/quickstart.md`：手動驗收流程
 
-Google Maps 功能只產生 Search／Directions URL，不使用 Maps SDK、API key 或任何付費 API。
+Google Maps 基本功能只產生不需 key 的 Search／Directions URL。選用的 iframe preview
+使用免費 Maps Embed API；不使用 Maps JavaScript、Places、Routes 或其他付費 API。

@@ -1,4 +1,4 @@
-# Implementation Plan: 多日旅遊行程編排 Demo
+# Implementation Plan: Markdown-first 多日旅遊編排 Demo
 
 **Branch**: `001-itinerary-planner-demo` | **Date**: 2026-09-17 | **Spec**: [spec.md](./spec.md)
 
@@ -6,10 +6,10 @@
 
 ## Summary
 
-建立一個純瀏覽器執行的單一旅程編排器。React UI 以 reducer 維持唯一狀態，
-使用者可透過表單或 Markdown 建立景點，將景點移動到多日行程、手動填寫時間，
-並產生免 API key 的 Google Maps URL。所有 domain 行為維持純函式，旅程以帶版本的
-localStorage 文件保存；測試涵蓋 domain、UI integration 與主要瀏覽器流程。
+建立一個純瀏覽器執行的 Markdown-first 行程編排器。使用者只在 textarea 編輯旅程；
+有效文件解析成 reducer state 並渲染為 sortable board。拖曳會更新 state，再由 serializer
+回寫標準 Markdown。CSV、JSON、時間提示與 Google Maps URL 全部由同一份 state 派生。
+解析失敗時保留草稿與最後一次有效畫面，不部分套用。
 
 ## Technical Context
 
@@ -31,8 +31,9 @@ stacked layout on narrow screens
 **Performance Goals**: User-visible state updates complete within 200 ms for the MVP
 validation dataset
 
-**Constraints**: No backend, authentication, Google SDK, API key, paid runtime dependency,
-or automatic route/time lookup; encoded map URLs must be at most 2,048 characters
+**Constraints**: No form-based editor, backend, authentication, chargeable Google API,
+or automatic route/time lookup; encoded map URLs must be at most 2,048 characters. The
+optional no-charge Maps Embed preview is defined separately in feature `002`.
 
 **Scale/Scope**: One trip, up to 14 days and 50 places as the validation baseline
 
@@ -46,8 +47,8 @@ or automatic route/time lookup; encoded map URLs must be at most 2,048 character
 | Local First | Static client application with localStorage only | PASS |
 | Minimal Scope | No server, account, map SDK, autocomplete, or optimization | PASS |
 | Deterministic Behavior | Parser, reducer, time, storage, and URL logic are pure/testable boundaries | PASS |
-| No Paid Dependency | Integration is limited to ordinary Google Maps URLs | PASS |
-| Accessible Interaction | dnd-kit keyboard sensor plus explicit move controls | PASS |
+| No Paid Dependency | Keyless URLs remain baseline; feature `002` only permits the no-charge Embed SKU | PASS |
+| Accessible Interaction | Pointer drag plus focused-card Alt + arrow keyboard movement | PASS |
 | Testable Requirements | Unit, integration, build, and browser smoke gates are included | PASS |
 | User Data Safety | Schema validation, raw backup, and safe initial-state fallback are designed | PASS |
 
@@ -82,10 +83,7 @@ src/
 │   └── tripReducer.ts
 ├── components/
 │   ├── DayColumn.tsx
-│   ├── MarkdownImport.tsx
-│   ├── PlaceCard.tsx
-│   ├── PlaceForm.tsx
-│   └── TripHeader.tsx
+│   └── PlaceCard.tsx
 ├── domain/
 │   ├── date.ts
 │   ├── maps.ts
@@ -119,11 +117,13 @@ React；UI 元件只透過 typed props 與 reducer actions 變更狀態。測試
 - 每個 reducer action 完成後統一正規化每個容器的 `order`，避免重複或間斷排序值。
 - 路線與畫面順序只讀取 `order`，不依開始時間自動重排。
 
-### Import and validation
+### Markdown parse and serialize
 
-- Markdown parser 每行獨立處理，回傳 `places` 與 `errors`，不直接修改狀態。
-- UI 只在使用者確認後 dispatch 有效項目；錯誤行保留於 textarea。
-- 時間及分鐘驗證集中於 domain，表單與 reducer 共用相同規則。
+- `parseTripMarkdown` 一次解析完整文件，只有零錯誤時才產生新的 `Trip`。
+- `serializeTripMarkdown` 依 backlog、days 與 order 產生 canonical Markdown。
+- 使用者輸入的無效草稿與最後有效 `Trip` 分開保存於 component state。
+- pointer drag 或 focused-card Alt + arrow keyboard movement dispatch `MOVE_PLACE`，完成後才觸發 canonical rewrite。
+- `serializeTripCsv` 與 `serializeTripJson` 只讀相同 `Trip`，不維護第二份資料。
 
 ### Persistence and recovery
 
@@ -137,14 +137,20 @@ React；UI 元件只透過 typed props 與 reducer actions 變更狀態。測試
 - 一站使用 Search URL，多站使用 Directions URL。
 - 一段最多五站；若加入下一站將超過五站或 2,048 字元，就在前一站結束該段，
   並以相同站點作為下一段起點。
-- 不傳 `travelmode`，不呼叫任何 Google API。
+- 普通 Search／Directions URL 不傳 `travelmode`，也不呼叫任何 Google API。
+- Feature `002-google-maps-route-preview` 可選擇性地把相同分段轉成 Maps Embed iframe；
+  缺少 key 時本段普通 URL 行為不變。
 
 ### UI and accessibility
 
-- 備案區與每天各自是一個 sortable container。
-- Pointer 與 keyboard sensors 提供拖曳；每張卡另有「移到」及上下移動按鈕。
-- Dialog 使用原生 `<dialog>` 或等價語意，所有 validation message 與 status update
-  透過可辨識文字／live region 呈現。
+- 左側為唯一 Markdown textarea，右側為備案及日期 sortable containers，下方顯示三種輸出。
+- Markdown textarea 上方顯示非可編輯、低對比的 canonical syntax example；它是 UI hint，不進入 parser 或 persisted state。
+- 整張卡片是 pointer drag handle；Alt + 左右方向鍵跨欄，Alt + 上下方向鍵同欄排序。
+- 日期 container 內含「未設定時間」drop area 與 24 個 hourly droppable rows；drop data 直接攜帶 `dayId` 與 `startTime`。
+- 有開始時間的卡片以 `max(一小時 row 高度, durationMinutes / 60 × row 高度)` 設定最小視覺高度，讓長活動跨越對應的小時格；備案與未設定時間卡片不套用此高度。
+- `MOVE_PLACE` 只在 hourly drop 明確提供時間時覆寫 `startTime`，一般跨欄移動仍保留既有時間，回到備案一律清除。
+- 不渲染新增、編輯、刪除、日期或移動按鈕；這些操作全部透過 Markdown 或拖曳完成。
+- Parser errors、schedule warnings 與 storage notice 使用可辨識文字／live region。
 
 ## Verification Strategy
 
@@ -156,5 +162,6 @@ React；UI 元件只透過 typed props 與 reducer actions 變更狀態。測試
 
 ## Post-Design Constitution Check
 
-設計沒有新增 runtime service、credential 或付費依賴；所有高風險行為均位於可單獨測試的
-domain／persistence 邊界，並提供非拖曳操作路徑。八項 constitution gate 全數維持 PASS。
+核心設計沒有新增必要 runtime service 或付費依賴；feature `002` 的 optional browser key
+與 no-charge Embed preview 已由 constitution 1.1.0 明確限制。所有高風險行為均位於可單獨
+測試的 domain／persistence 邊界，並提供非拖曳操作路徑。八項 constitution gate 全數維持 PASS。

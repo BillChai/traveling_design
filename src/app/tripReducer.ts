@@ -118,7 +118,13 @@ export const normalizeTrip = (
     return { ...existing, dayId, startTime: dayId ? existing.startTime : null }
   })
 
-  const days = relabelDays(trip.days.length ? trip.days : [{ id: idFactory(), date: null, label: '' }], trip.startDate)
+  const days = (trip.days.length
+    ? trip.days
+    : [{ id: idFactory(), date: null, label: 'Day 1' }]
+  ).map((day, index) => ({
+    ...day,
+    label: day.label.trim() || `Day ${index + 1}`,
+  }))
   return { ...trip, days, placements: normalizeOrders(placements, days) }
 }
 
@@ -127,6 +133,7 @@ const movePlacement = (
   placementId: string,
   targetDayId: ContainerId,
   targetIndex: number,
+  targetStartTime?: string | null,
 ): Trip => {
   const moving = state.placements.find((item) => item.id === placementId)
   if (!moving) return state
@@ -140,7 +147,12 @@ const movePlacement = (
   target.splice(index, 0, {
     ...moving,
     dayId: targetDayId,
-    startTime: targetDayId === null ? null : moving.startTime,
+    startTime:
+      targetDayId === null
+        ? null
+        : targetStartTime === undefined
+          ? moving.startTime
+          : targetStartTime,
   })
   const targetUpdates = new Map(target.map((item, order) => [item.id, { ...item, order }]))
   const placements = [...others, moving].map((item) => targetUpdates.get(item.id) ?? item)
@@ -149,6 +161,8 @@ const movePlacement = (
 
 export const tripReducer = (state: Trip, action: TripAction): Trip => {
   switch (action.type) {
+    case 'REPLACE_TRIP':
+      return normalizeTrip(action.trip)
     case 'SET_TITLE':
       return { ...state, title: action.title }
     case 'SET_START_DATE': {
@@ -217,7 +231,13 @@ export const tripReducer = (state: Trip, action: TripAction): Trip => {
         placements: state.placements.filter((item) => item.placeId !== action.placeId),
       })
     case 'MOVE_PLACE':
-      return movePlacement(state, action.placementId, action.targetDayId, action.targetIndex)
+      return movePlacement(
+        state,
+        action.placementId,
+        action.targetDayId,
+        action.targetIndex,
+        action.startTime,
+      )
     case 'UPDATE_SCHEDULE':
       return {
         ...state,

@@ -171,3 +171,47 @@
 - Tests precede their corresponding implementation tasks.
 - Every completed task is marked `[X]` only after its relevant test or build command passes.
 - File paths and field constraints are decision-complete; implementation must not invent additional services or schemas.
+
+---
+
+## Phase 8: Markdown-first Revision
+
+**Goal**: Replace form-based editing with one canonical Markdown editor, drag synchronization, and deterministic Markdown／CSV／JSON output.
+
+Phases 1–7 record the original form-based implementation. Phase 8 supersedes its form and visible move-control tasks while retaining the tested domain, persistence, and Maps boundaries.
+
+- [X] T039 Update `spec.md` and `plan.md` for the Markdown-first interaction contract.
+- [X] T040 Add full-document parser and Markdown／CSV／JSON serializer tests in `src/domain/markdown.test.ts`.
+- [X] T041 Implement pure full-document parsing and serialization in `src/domain/markdown.ts`.
+- [X] T042 Add reducer replacement support while preserving deterministic move behavior.
+- [X] T043 Replace form-based `App` flow with draft parsing, last-valid rendering, drag rewrite, and live outputs.
+- [X] T044 Simplify `PlaceCard` and `DayColumn` to display-only sortable components with pointer and keyboard drag.
+- [X] T045 Replace obsolete component tests and Playwright flow with Markdown-first acceptance scenarios.
+- [X] T046 Update README and quickstart examples.
+- [X] T047 Run `npm test`, `npm run build`, and `npm run test:e2e`; mark this phase complete only after all pass.
+
+---
+
+## Phase 9: Hourly Day Timeline
+
+**Goal**: Render every day as a 24-hour timeline and let pointer drops assign whole-hour start times.
+
+- [X] T048 Update spec and plan with hourly timeline behavior.
+- [X] T049 Add reducer and component tests for explicit drop time, 24 slots, and unscheduled placement.
+- [X] T050 Extend `MOVE_PLACE` with an optional target start time while preserving existing move semantics.
+- [X] T051 Render an unscheduled drop area and 24 hourly droppable rows in each day column.
+- [X] T052 Update drag handling so slot drops write `@HH:00` into all derived outputs.
+- [X] T053 Update quickstart and Playwright coverage for a real drop into the 09:00 slot.
+- [X] T054 Run unit, build, Playwright, and CI gates.
+
+## Phase 10: Markdown Format Hint
+
+**Goal**: Show a light, non-editable Markdown example above the editor without changing trip data.
+
+- [X] T055 Update spec and plan, render the syntax example, and add component coverage for the hint.
+
+## Phase 11: Duration-scaled Timeline Cards
+
+**Goal**: Make scheduled cards visibly span the hourly slots represented by their stay duration.
+
+- [X] T056 Update spec and plan, add duration-height component coverage, and render scheduled cards with duration-scaled visual height.

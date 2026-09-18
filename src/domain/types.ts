@@ -77,12 +77,19 @@ export interface MapLink {
   placeIds: string[]
 }
 
+export interface MapEmbed {
+  label: string
+  url: string
+  placeIds: string[]
+}
+
 export interface PlaceBundle {
   place: Place
   placement: Placement
 }
 
 export type TripAction =
+  | { type: 'REPLACE_TRIP'; trip: Trip }
   | { type: 'SET_TITLE'; title: string }
   | { type: 'SET_START_DATE'; startDate: string | null }
   | { type: 'ADD_DAY'; day: DayPlan }
@@ -96,6 +103,7 @@ export type TripAction =
       placementId: string
       targetDayId: ContainerId
       targetIndex: number
+      startTime?: string | null
     }
   | {
       type: 'UPDATE_SCHEDULE'
