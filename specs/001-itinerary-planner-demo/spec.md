@@ -129,6 +129,7 @@
 - **FR-022**: Hourly slot drop 完成後 MUST 同步更新 canonical Markdown、CSV、JSON 與 localStorage。
 - **FR-023**: Markdown 編輯區 MUST 在 textarea 上方顯示包含旅程、備案、日期與 `@HH:MM` 的輕量格式範例；範例 MUST 不可編輯且不得寫入任何輸出或 localStorage。
 - **FR-024**: 有開始時間的景點卡片 MUST 依停留分鐘數顯示視覺高度：60 分鐘至少佔一個小時格，180 分鐘應跨越三個小時格；此視覺高度不得改變排序或時間計算。
+- **FR-027**: Hourly timeline 的每個小時列 MUST 維持固定高度；長時間卡片 MUST 覆蓋後續小時列，而不得把開始時間所在的列撐高或將後續列往下推。
 
 ## Success Criteria
 
