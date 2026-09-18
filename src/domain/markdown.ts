@@ -272,11 +272,6 @@ const exportItemsFor = (trip: Trip, section: string, date: string | null, dayId:
     }]
   })
 
-const allExportItems = (trip: Trip): ExportItem[] => [
-  ...exportItemsFor(trip, '備案', null, null),
-  ...trip.days.flatMap((day) => exportItemsFor(trip, day.label, day.date, day.id)),
-]
-
 const compareNullableText = (left: string | null, right: string | null): number => {
   if (left === right) return 0
   if (left === null) return 1
