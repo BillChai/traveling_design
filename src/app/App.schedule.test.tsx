@@ -80,13 +80,13 @@ describe('多日視覺編排', () => {
 ## 備案
 
 ## Day 1 | 2026-10-03
-- @09:00 A | A | 180`,
+- @09:00 A | A | 140`,
       },
     })
 
     const card = screen.getByRole('article', { name: 'A' })
     expect(card).toHaveClass('timedPlaceCard')
-    expect(card.style.getPropertyValue('--duration-height')).toBe('228px')
+    expect(card.style.getPropertyValue('--duration-height')).toBe('177.33333333333334px')
   })
 
   it('offers the current CSV through a stable download filename', () => {
