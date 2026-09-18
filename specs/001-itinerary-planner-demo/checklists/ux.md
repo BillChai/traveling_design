@@ -20,7 +20,7 @@
 - [x] CHK005 Is the source of truth for visual order unambiguous when drag order and time order differ? [Clarity, Spec §FR-017–FR-018]
 - [x] CHK006 Are the accepted Markdown fields, defaults, invalid ranges, and partial-success behavior explicitly specified? [Clarity, Spec §FR-003–FR-006]
 - [x] CHK007 Is the distinction between backlog placement, scheduled placement, and deletion consistently defined? [Clarity, Spec §FR-011–FR-014]
-- [x] CHK008 Are map route chunk limits and continuity requirements objectively measurable? [Measurability, Spec §FR-021]
+- [x] CHK008 Is the one-route-per-day Maps URL behavior objectively measurable? [Measurability, Spec §FR-014]
 
 ## Accessibility and Alternate Interaction
 

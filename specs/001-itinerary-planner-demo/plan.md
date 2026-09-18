@@ -32,8 +32,8 @@ stacked layout on narrow screens
 validation dataset
 
 **Constraints**: No form-based editor, backend, authentication, chargeable Google API,
-or automatic route/time lookup; encoded map URLs must be at most 2,048 characters. The
-optional no-charge Maps Embed preview is defined separately in feature `002`.
+or automatic route/time lookup. The optional no-charge Maps Embed preview is defined
+separately in feature `002`.
 
 **Scale/Scope**: One trip, up to 14 days and 50 places as the validation baseline
 
@@ -136,11 +136,10 @@ React；UI 元件只透過 typed props 與 reducer actions 變更狀態。測試
 ### Google Maps URLs
 
 - 一站使用 Search URL，多站使用 Directions URL。
-- 一段最多五站；若加入下一站將超過五站或 2,048 字元，就在前一站結束該段，
-  並以相同站點作為下一段起點。
+- 每個日期固定產生一條路線 URL；所有站點依畫面順序放入同一個 Directions URL，不自動拆段。
 - 普通 Search／Directions URL 不傳 `travelmode`，也不呼叫任何 Google API。
-- Feature `002-google-maps-route-preview` 可選擇性地把相同分段轉成 Maps Embed iframe；
-  缺少 key 時本段普通 URL 行為不變。
+- Feature `002-google-maps-route-preview` 可選擇性地把相同日期路線轉成 Maps Embed iframe；
+  缺少 key 時普通 URL 行為不變。
 
 ### UI and accessibility
 
@@ -156,7 +155,7 @@ React；UI 元件只透過 typed props 與 reducer actions 變更狀態。測試
 
 ## Verification Strategy
 
-1. Unit tests：Markdown、日期、時間衝突、reducer、storage recovery、Maps URL chunking。
+1. Unit tests：Markdown、日期、時間衝突、reducer、storage recovery、one-route-per-day Maps URL。
 2. Component tests：新增、匯入、移動替代控制、時間提示、刪除確認及空狀態。
 3. Browser smoke：匯入四站、安排兩天、重排、重新整理、驗證 route link。
 4. Quality gates：`npm test`、`npm run build`、`npm run test:e2e`；E2E 驗證 CSV 下載檔名與日期／backlog 順序。

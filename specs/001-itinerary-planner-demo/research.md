@@ -38,11 +38,11 @@
 
 ## Maps integration
 
-**Decision**: 使用 Google Maps Search／Directions URL；每段最多五站並同時檢查
-2,048 字元上限。
+**Decision**: 使用 Google Maps Search／Directions URL；每個日期只產生一條 URL，完整保留
+畫面上的站點順序，不自動拆段。
 
-**Rationale**: 無 API key 或 billing，仍能把目前順序交給 Google Maps。五站包含起點、
-終點與最多三個 mobile browser waypoint。
+**Rationale**: 無 API key 或 billing，仍能把目前順序交給 Google Maps；使用者希望每天只
+看到一個可開啟的路線入口，因此不在前端切成多段。
 
 **Alternatives considered**:
 

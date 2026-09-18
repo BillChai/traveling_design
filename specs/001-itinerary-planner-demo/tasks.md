@@ -110,18 +110,18 @@
 
 ## Phase 6: User Story 4 - 開啟地圖路線 (Priority: P2)
 
-**Goal**: Generate API-key-free Search or chunked Directions links in the exact visual order.
+**Goal**: Generate one API-key-free Search or Directions link per day in the exact visual order.
 
-**Independent Test**: Validate zero-, one-, five-, six-, and twelve-stop route sets including long encoded queries.
+**Independent Test**: Validate zero-, one-, multi-stop, and long-query route sets all produce one daily route.
 
 ### Tests for User Story 4
 
-- [X] T028 [P] [US4] Add Maps URL tests for zero/one/multi-stop behavior, no travel mode, five-stop chunks, shared boundaries, encoding, and 2,048-character limits in `src/domain/maps.test.ts`
+- [X] T028 [P] [US4] Add Maps URL tests for zero/one/multi-stop behavior, no travel mode, order, and long queries in `src/domain/maps.test.ts`
 
 ### Implementation for User Story 4
 
-- [X] T029 [US4] Implement deterministic Google Maps Search/Directions URL generation and safe chunking in `src/domain/maps.ts` (FR-018–FR-021)
-- [X] T030 [US4] Render per-day route buttons, segment labels, and unavailable reasons in `src/components/DayColumn.tsx` (FR-019–FR-021, FR-025)
+- [X] T029 [US4] Implement deterministic one-route-per-day Google Maps Search/Directions URL generation in `src/domain/maps.ts` (FR-018–FR-021)
+- [X] T030 [US4] Render per-day route buttons and unavailable reasons in `src/components/DayColumn.tsx` (FR-019–FR-021, FR-025)
 
 **Checkpoint**: User Story 4 opens correctly ordered routes without an API key or preset travel mode.
 
