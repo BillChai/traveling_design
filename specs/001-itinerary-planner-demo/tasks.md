@@ -203,3 +203,9 @@ Phases 1–7 record the original form-based implementation. Phase 8 supersedes i
 - [X] T052 Update drag handling so slot drops write `@HH:00` into all derived outputs.
 - [X] T053 Update quickstart and Playwright coverage for a real drop into the 09:00 slot.
 - [X] T054 Run unit, build, Playwright, and CI gates.
+
+## Phase 10: Markdown Format Hint
+
+**Goal**: Show a light, non-editable Markdown example above the editor without changing trip data.
+
+- [X] T055 Update spec and plan, render the syntax example, and add component coverage for the hint.

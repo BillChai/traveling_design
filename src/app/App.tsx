@@ -141,6 +141,14 @@ export default function App() {
       <section className={styles.workspace} aria-label="Markdown 行程工作區">
         <div className={styles.editorPanel}>
           <label htmlFor="trip-markdown">Markdown 行程</label>
+          <p className={styles.exampleCaption}>格式範例</p>
+          <pre className={styles.markdownExample} aria-label="Markdown 格式範例">{`# 東京旅行
+
+## 備案
+- 淺草寺 | 淺草寺 | 90
+
+## Day 1 | 2026-10-03
+- @09:00 東京晴空塔 | 東京晴空塔 | 120`}</pre>
           <textarea
             id="trip-markdown"
             value={markdown}

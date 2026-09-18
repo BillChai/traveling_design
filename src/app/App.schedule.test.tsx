@@ -5,6 +5,13 @@ import App from './App'
 afterEach(() => vi.unstubAllEnvs())
 
 describe('多日視覺編排', () => {
+  it('shows a light Markdown format example above the editor', () => {
+    render(<App />)
+
+    expect(screen.getByText('格式範例')).toBeInTheDocument()
+    expect(screen.getByLabelText('Markdown 格式範例')).toHaveTextContent('@09:00')
+  })
+
   it('creates backlog and day columns only from Markdown headings', () => {
     render(<App />)
     fireEvent.change(screen.getByLabelText('Markdown 行程'), {

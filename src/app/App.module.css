@@ -59,6 +59,28 @@
   font-size: 1rem;
 }
 
+.exampleCaption {
+  margin: 0 0 6px;
+  color: #9aa29f;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.markdownExample {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  border: 1px solid #ebe7de;
+  border-radius: 10px;
+  color: #9aa29f;
+  background: #fbfaf6;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  white-space: pre;
+}
+
 .editorPanel textarea {
   min-height: 570px;
   padding: 16px;

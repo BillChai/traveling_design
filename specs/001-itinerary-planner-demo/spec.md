@@ -22,6 +22,7 @@
 - 視覺上不提供移動按鈕，但拖曳卡片必須支援 pointer 與鍵盤操作。
 - 每個日期欄以可捲動的 `00:00` 至 `23:00` hourly timeline 顯示；沒有開始時間的景點置於日期內的「未設定時間」。
 - 使用 pointer 將景點拖到 hourly slot 時，開始時間設為該小時的 `HH:00` 並回寫 Markdown。
+- Markdown textarea 上方 MUST 顯示非可編輯、低對比的格式範例，且範例不得成為旅程資料。
 
 ## User Scenarios & Testing
 
@@ -126,6 +127,7 @@
 - **FR-020**: 日期內沒有開始時間的景點 MUST 顯示於獨立的「未設定時間」drop area。
 - **FR-021**: 景點拖入 hourly slot MUST 將開始時間更新為該 slot 的 `HH:00`；拖入「未設定時間」 MUST 清除開始時間。
 - **FR-022**: Hourly slot drop 完成後 MUST 同步更新 canonical Markdown、CSV、JSON 與 localStorage。
+- **FR-023**: Markdown 編輯區 MUST 在 textarea 上方顯示包含旅程、備案、日期與 `@HH:MM` 的輕量格式範例；範例 MUST 不可編輯且不得寫入任何輸出或 localStorage。
 
 ## Success Criteria
 

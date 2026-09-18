@@ -144,6 +144,7 @@ React；UI 元件只透過 typed props 與 reducer actions 變更狀態。測試
 ### UI and accessibility
 
 - 左側為唯一 Markdown textarea，右側為備案及日期 sortable containers，下方顯示三種輸出。
+- Markdown textarea 上方顯示非可編輯、低對比的 canonical syntax example；它是 UI hint，不進入 parser 或 persisted state。
 - 整張卡片是 pointer drag handle；Alt + 左右方向鍵跨欄，Alt + 上下方向鍵同欄排序。
 - 日期 container 內含「未設定時間」drop area 與 24 個 hourly droppable rows；drop data 直接攜帶 `dayId` 與 `startTime`。
 - `MOVE_PLACE` 只在 hourly drop 明確提供時間時覆寫 `startTime`，一般跨欄移動仍保留既有時間，回到備案一律清除。
