@@ -180,7 +180,9 @@ textarea { resize: vertical; }
 .hourSlot {
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);
+  height: 76px;
   min-height: 76px;
+  overflow: visible;
   border-top: 1px solid var(--line);
 }
 .hourSlot:first-child { border-top: 0; }
@@ -193,7 +195,7 @@ textarea { resize: vertical; }
   font-size: 0.72rem;
   font-weight: 800;
 }
-.hourContent { display: grid; align-content: start; gap: 8px; min-width: 0; padding: 7px; }
+.hourContent { display: grid; align-content: start; gap: 8px; min-width: 0; min-height: 0; padding: 7px; }
 
 .placeCard { padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); box-shadow: 0 7px 20px rgb(42 55 51 / 7%); cursor: grab; touch-action: none; }
 .timedPlaceCard { position: relative; z-index: 1; min-height: var(--duration-height); }

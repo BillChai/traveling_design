@@ -132,6 +132,7 @@
 - **FR-024**: 有開始時間的景點卡片 MUST 依停留分鐘數顯示視覺高度：60 分鐘至少佔一個小時格，180 分鐘應跨越三個小時格；此視覺高度不得改變排序或時間計算。
 - **FR-025**: 系統 MUST 提供下載目前有效行程的 CSV 功能；CSV MUST 先輸出日期欄位中的景點，依日期、開始時間（無時間者最後）及容器內 `order` 排序，再輸出全部備案，且備案的 `section` MUST 為 `backlog`。
 - **FR-026**: CSV 下載 MUST 使用固定檔名 `travel-itinerary.csv`，空行程也 MUST 產生包含 header 的有效檔案。
+- **FR-027**: Hourly timeline 的每個小時列 MUST 維持固定高度；長時間卡片 MUST 覆蓋後續小時列，而不得把開始時間所在的列撐高或將後續列往下推。
 
 ## Success Criteria
 
