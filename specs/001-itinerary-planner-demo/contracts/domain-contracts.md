@@ -56,5 +56,4 @@ buildGoogleMapsLinks(places: RoutePlace[]): MapLink[]
 - 1 站回傳 Search URL。
 - 2 站以上回傳 Directions URL，第一站為 origin、最後一站為 destination。
 - 不包含 `travelmode`。
-- 每段最多五站且網址長度最多 2,048。
-- 多段路線共享邊界站點並保留完整順序。
+- 2 站以上固定回傳一條 Directions URL，包含所有站點且保留完整順序。

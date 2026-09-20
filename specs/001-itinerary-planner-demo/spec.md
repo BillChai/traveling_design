@@ -119,7 +119,7 @@
 - **FR-011**: 系統 MUST 即時產生依容器及 `order` 排序的 Markdown、CSV、JSON。
 - **FR-012**: CSV MUST 正確引用特殊字元；JSON MUST 使用明確的 `backlog` 與 `days[].items` 結構。
 - **FR-013**: 一站 MUST 產生 Google Maps Search URL；多站 MUST 產生 Directions URL。
-- **FR-014**: Maps URL MUST 使用視覺順序、不指定交通方式，且依五站／2,048 字元限制分段。
+- **FR-014**: 每個日期 MUST 只產生一條 Maps URL；URL MUST 使用視覺順序且不指定交通方式，不得自動依站數或 URL 長度分段。
 - **FR-015**: 每次有效狀態變更 MUST 保存，並在重新整理後還原相同內容及順序。
 - **FR-016**: 損毀或不支援的儲存內容 MUST 備份原始值並載入安全 starter document。
 - **FR-017**: UI MUST 使用繁體中文，錯誤及警告不得只依賴顏色。

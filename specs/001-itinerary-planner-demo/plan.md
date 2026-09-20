@@ -32,8 +32,8 @@ stacked layout on narrow screens
 validation dataset
 
 **Constraints**: No form-based editor, backend, authentication, chargeable Google API,
-or automatic route/time lookup; encoded map URLs must be at most 2,048 characters. The
-optional no-charge Maps Embed preview is defined separately in feature `002`.
+or automatic route/time lookup. The optional no-charge Maps Embed preview is defined
+separately in feature `002`.
 
 **Scale/Scope**: One trip, up to 14 days and 50 places as the validation baseline
 
@@ -136,11 +136,10 @@ React；UI 元件只透過 typed props 與 reducer actions 變更狀態。測試
 ### Google Maps URLs
 
 - 一站使用 Search URL，多站使用 Directions URL。
-- 一段最多五站；若加入下一站將超過五站或 2,048 字元，就在前一站結束該段，
-  並以相同站點作為下一段起點。
+- 每個日期固定產生一條路線 URL；所有站點依畫面順序放入同一個 Directions URL，不自動拆段。
 - 普通 Search／Directions URL 不傳 `travelmode`，也不呼叫任何 Google API。
-- Feature `002-google-maps-route-preview` 可選擇性地把相同分段轉成 Maps Embed iframe；
-  缺少 key 時本段普通 URL 行為不變。
+- Feature `002-google-maps-route-preview` 可選擇性地把相同日期路線轉成 Maps Embed iframe；
+  缺少 key 時普通 URL 行為不變。
 
 ### UI and accessibility
 
@@ -148,14 +147,14 @@ React；UI 元件只透過 typed props 與 reducer actions 變更狀態。測試
 - Markdown textarea 上方顯示非可編輯、低對比的 canonical syntax example；它是 UI hint，不進入 parser 或 persisted state。
 - 整張卡片是 pointer drag handle；Alt + 左右方向鍵跨欄，Alt + 上下方向鍵同欄排序。
 - 日期 container 內含「未設定時間」drop area 與 24 個 hourly droppable rows；drop data 直接攜帶 `dayId` 與 `startTime`。
-- 有開始時間的卡片以 `max(一小時 row 高度, durationMinutes / 60 × row 高度)` 設定視覺高度，並在固定高度的 hourly row 上溢出覆蓋後續小時格；不得讓起始 row 因卡片高度而變高。備案與未設定時間卡片不套用此高度。
+- 有開始時間的卡片以 `max(一小時 row 高度, durationMinutes / 60 × row 高度)` 設定最小視覺高度，並在固定高度的 hourly row 上溢出覆蓋後續小時格；不得讓起始 row 因卡片高度而變高。備案與未設定時間卡片不套用此高度。
 - `MOVE_PLACE` 只在 hourly drop 明確提供時間時覆寫 `startTime`，一般跨欄移動仍保留既有時間，回到備案一律清除。
 - 不渲染新增、編輯、刪除、日期或移動按鈕；這些操作全部透過 Markdown 或拖曳完成。
 - Parser errors、schedule warnings 與 storage notice 使用可辨識文字／live region。
 
 ## Verification Strategy
 
-1. Unit tests：Markdown、日期、時間衝突、reducer、storage recovery、Maps URL chunking。
+1. Unit tests：Markdown、日期、時間衝突、reducer、storage recovery、one-route-per-day Maps URL。
 2. Component tests：新增、匯入、移動替代控制、時間提示、刪除確認及空狀態。
 3. Browser smoke：匯入四站、安排兩天、重排、重新整理、驗證 route link。
 4. Quality gates：`npm test`、`npm run build`、`npm run test:e2e`；E2E 驗證 CSV 下載檔名與日期／backlog 順序。
